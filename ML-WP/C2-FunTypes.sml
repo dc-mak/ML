@@ -1,7 +1,10 @@
 (* 2.1: poly, use "Chap2.sml"; *)
 
 (* 2.2:
+ * Good (correction):
  * Eliminates overloaded operators and fewer concepts to rememmber.
+ *
+ * Bad:
  * Although this could work for 32b ints and 64b floats, the distinction
  * is there for many reasons: real numbers cannot be represented exactly,
  * equality becomes tougher with floats, loss of precision or even a
@@ -13,28 +16,28 @@
 (* 2.4:
  * First one: ~1 -> / and 10 -> :
  * Second one: some sort of exception (Subscript ?) raised. *)
- 
+
 (* 2.5 *)
 type date = int * string;
- fun check_date ((d, m) : date) =
-	(d > 0) andalso
-    ((d <= 28 andalso  m = "February" ) orelse
-     (d <= 30 andalso (m = "April" orelse
-                       m = "June" orelse
-                       m = "September" orelse
-                       m = "November" )) orelse
-     (d <= 31 andalso (m = "January" orelse
-                       m = "March" orelse
-                       m = "May" orelse
-                       m = "July" orelse
-                       m = "August" orelse
-                       m = "October" orelse
-                       m = "December" )));
+fun check_date ((d, m) : date) =
+  (d > 0) andalso
+  ((d <= 28 andalso  m = "February" ) orelse
+   (d <= 30 andalso (m = "April" orelse
+                     m = "June" orelse
+                     m = "September" orelse
+                     m = "November" )) orelse
+   (d <= 31 andalso (m = "January" orelse
+                     m = "March" orelse
+                     m = "May" orelse
+                     m = "July" orelse
+                     m = "August" orelse
+                     m = "October" orelse
+                     m = "December" )));
 
 (* 2.6: Doesn't check for validity of time. *)
 type time = int * int * string;
 fun is_before ((h1, m1, ampm1) : time, (h2, m2, ampm2) : time) =
-  ampm1 = "AM" andalso 
+  ampm1 = "AM" andalso
     (ampm2 = "PM" orelse
     (ampm1 = "AM" andalso (h1 < h2 orelse
                            h1 = h2 andalso m1 < m2)));
@@ -43,14 +46,14 @@ fun is_before ((h1, m1, ampm1) : time, (h2, m2, ampm2) : time) =
 type old_eng_money = int * int * int;
 fun to_pence ((pnd, sh, p) : old_eng_money) = p + 12 * (sh + 20*pnd);
 
-fun to_oem n : old_eng_money = 
+fun to_oem n : old_eng_money =
   (n div 240, n mod 240 div 12, n mod 240 mod 12);
 
 fun add_oem (amt1, amt2) = to_oem (to_pence amt1 + to_pence amt2);
 
 fun sub_oem (amt1, amt2) = to_oem (to_pence amt1 - to_pence amt2);
 
-(* 2.8: No, king -> int. *)
+(* 2.8: Correction: king -> int. *)
 
 (* 2.9 Functions need fixed record types but selectors do not. *)
 
@@ -101,7 +104,7 @@ fun sub_oem (amt1, amt2) = to_oem (to_pence amt1 - to_pence amt2);
  * UNLESS, memoization is used a la Haskell.
  *)
 
-(* 2.16: 
+(* 2.16:
  * F(n) = F(n-1) + F(n-2)
  *      = (F(n-2) + F(n-3)) + F(n-2) = 2F(n-2) + F(n-3)
  * So for F(2n) = 2F(2(n-1)) + F(2(n-1)-1)
@@ -116,7 +119,7 @@ fun sub_oem (amt1, amt2) = to_oem (to_pence amt1 - to_pence amt2);
 fun even m = m mod 2 = 0;
 fun half m = m div 2;
 
-fun gcd (m, n) = 
+fun gcd (m, n) =
   if m = n then m else
   if m > n then gcd (n, m) else
     if even m then
@@ -130,13 +133,14 @@ fun gcd (m, n) =
  * multiple things, but local works for multiple as well. So, dunno.
  *)
 
-(* 2.21: TODO: return to this later for proofs. *)
+(* 2.21: Online solution *)
 fun introot n =
   if n < 4 then (1, n-1)
   else
-    let val (root, rem) = introot (n div 4)
-        val i = 4*rem + n mod 4 (* rem. if root is even *)
-        val j = i - 4*root - 1  (* rem. if root is odd *)
+    let
+      val (root, rem) = introot (n div 4)
+      val i = 4*rem + n mod 4 (* rem. if root is even *)
+      val j = i - 4*root - 1  (* rem. if root is odd *)
     in
       if j < 0 then (2*root, i) else (2*root+1, j)
     end;
@@ -147,12 +151,12 @@ fun introot n =
  * For a natural number n, find the greatest natural number a (and
  * thereby, the least natural number b) such that:
  *              a^2 <= n < (a+1)^2 and a^2 + b = n.
- * 
+ *
  * As a consequence,
  *              a^2 + b < (a+1)^2
  *                    b < 2a + 1
  *                    b <= 2a.
- * 
+ *
  * Base cases:
  * -----------
  *      0   =>  (1, ~1)     = 1*1 + ~1 = 0
@@ -171,7 +175,11 @@ fun introot n =
  * Let i = 4*rem + y > 0
  *     j = i - (4*rt + 1)
  *
- * If j < 0, then i < 4*rt + 1              ???
+ * We want the smallest remainder greater than 0.
+ * For the even case, i is the remainder (see calculation below).
+ * For the odd case, j is the remainder (see calculation below).
+ *
+ * If j < 0, then i < 4*rt + 1,
  *                4*rem <= 4*rt - y
  *                0 <= rem < rt, and so
  *
@@ -182,7 +190,7 @@ fun introot n =
  *
  * Hence introot n = (2*rt, i) as required for the even case.
  *
- * If j > 0 then 4*rt + 1 - y < 4*rem       ???
+ * If j > 0 then 4*rt + 1 - y < 4*rem i
  *               rt <= rem <= 2*rt
  *
  *               n = 4n' + y
@@ -208,7 +216,7 @@ fun P_n n =
 
 (* 2.24 *)
 structure Real =
-struct 
+struct
   type t = real
   val zero = 0.0 : t
   fun sum  (a, b) = a + b : t
@@ -239,7 +247,7 @@ struct
     val hcf = gcd (x,y)
     fun sgn x = if x < 0 then ~1 else 1
     val sign = sgn a * sgn b
-    val (p,q) = if sign = 1 then (x, y) else (~x, y) 
+    val (p,q) = if sign = 1 then (x, y) else (~x, y)
    in
      (p div hcf, q div hcf)
    end
