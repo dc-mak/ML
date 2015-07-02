@@ -135,7 +135,8 @@ fun matid size =
 fun mult (n, []) = [] : real list
   | mult (n, x::xs) = n*x::mult(n,xs);
 
-(* Assert the ys only has one element by the end of it *)
+(* TODO: Redo better *)
+(* Assert that ys only has one element by the end of it *)
 fun addrows (x::xs, [y], 1) = mult(~x,y)
   | addrows (x::xs, y::ys, n) =
     vectorsum(mult(~x, y), addrows(xs, ys, n-1));
