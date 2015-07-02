@@ -17,11 +17,11 @@
  * recursive calls being the same. *)
 
 (* 3.34: *)
-fun cons (x, []) = []
+fun cons (x, [])    = []
   | cons (x, y::ys) = (x::y)::cons(x,ys);
 
-fun choose (0, xs) = [[]]
-  | choose (k, []) = []
+fun choose (0, xs)    = [[]]
+  | choose (k, [])    = []
   | choose (k, x::xs) =
     cons(x, choose(k-1, xs)) @ choose (k, xs);
 
@@ -34,7 +34,7 @@ fun choose (0, xs) = [[]]
 (* 3.36:
 fun pathsort graph =
   let
-    fun sort ([], path, visited) = [visited]
+    fun sort ([], path, visited)    = [visited]
       | sort (x::xs, path, visited) =
       if x mem path then []
       else sort (xs, path,
@@ -52,9 +52,10 @@ fun pathsort graph =
 (* 3.37: Yes and it'll contain all nodes? (Yes.) *) 
 
 (* 3.38: *)
-fun quicker ([], sorted) = sorted
+fun quicker ([], sorted)    = sorted
   | quicker (a::bs, sorted) =
-  let fun part (left, right, []) = quicker (left, a::quicker (right,sorted))
+  let fun part (left, right, [])    =
+            quicker (left, a::quicker (right,sorted))
         | part (left, right, x::xs) =
           if x <= a then part (x::left, right, xs)
                     else part (left, x::right, xs)
@@ -73,7 +74,7 @@ fun find (a::bs, i) =
  
 (* 3.40: This starts from 1, online solutions' * starts from 0. Online one
  * is more concise but sacrifices a little clarity. *)
-fun findrange ([], i, j) = []
+fun findrange ([], i, j)    = []
   | findrange (a::bs, i, j) =
     let fun part (left, right, []) =
         let
@@ -101,8 +102,8 @@ local val (a, m) = (1687.0, 2147483647.0) in
 end;
 
 fun randlist (n, seed, tail) =
-  if n = 0 then (seed, tail)
-  else randlist (n-1, nextrand seed, seed::tail);
+      if n = 0 then (seed, tail)
+      else randlist (n-1, nextrand seed, seed::tail);
 
 fun generate_list () = randlist (10000000, 1.0, []);
 
@@ -217,8 +218,8 @@ fun show ts =
  * Correction: need to mention take and drop in prod also maintain valid
  * polynomials. *)
 
-(* Define the sum of two polynomials. Show that the function terminates.
+(* 3.48: Define the sum of two polynomials. Show that the function terminates.
  * Prove bases cases. Assume correct inputs for non-base cases.
  * Show that each term consed to the list maintains invariants relating to
  * polynomial sums.
- * Correction: coudl go abstract with sets and reduce to union proof. *)
+ * Correction: could go abstract with sets and reduce to union proof. *)

@@ -1,16 +1,16 @@
 (* 3.15 *)
-fun bincarry (false, ps) = ps
-  | bincarry (true, []) = [true]
-  | bincarry (true, p::ps) = not p :: bincarry (p, ps);
+fun bincarry (false, ps)    = ps
+  | bincarry (true,  [])    = [true]
+  | bincarry (true,  p::ps) = not p :: bincarry (p, ps);
 
 
-fun binsum (c, [], qs) = bincarry (c, qs)
-  | binsum (c, ps, []) = bincarry (c, ps)
+fun binsum (c, [],       qs) = bincarry (c, qs)
+  | binsum (c, ps,       []) = bincarry (c, ps)
   | binsum (c, p::ps, q::qs) =
   let
-    (* Paulson: At least two bits are true *)
+    (* Online solution: At least two bits are true *)
     fun carry (a,b,c) = a andalso b orelse a andalso c orelse b andalso c;
-    (* Paulson: b=c is equivalent to not (b XOR c) so... *)
+    (* Online solution: b=c is equivalent to not (b XOR c) so... *)
     fun sum   (a,b,c) = (a=(b=c));
 
     (* What I did...
@@ -21,9 +21,9 @@ fun binsum (c, [], qs) = bincarry (c, qs)
     sum (p, q, c) :: binsum (carry (p, q, c), ps, qs)
   end;
 
-fun binprod ([], _) = []
+fun binprod ([], _)         = []
   | binprod (false::ps, qs) = false::binprod (ps, qs)
-  | binprod (true::ps, qs) = binsum (false, qs, false::binprod (ps, qs));
+  | binprod (true::ps, qs)  = binsum (false, qs, false::binprod (ps, qs));
 
 (* 3.16: See the structure... All from Online solution's web answers. *)
 signature ARITH =
@@ -44,13 +44,13 @@ struct
   val zero = []
 
   (* Equivalent to add 1 *)
-  fun carry (0, ps) = ps
-    | carry (1, []) = [1]
+  fun carry (0, ps)    = ps
+    | carry (1, [])    = [1]
     | carry (1, p::ps) = (1-p) :: carry (p, ps);
 
   (* Sum logic and carry logic propogated through list *)
-  fun sumc (c, [], qs) = carry (c,qs)
-    | sumc (c, ps, []) = carry (c,ps)
+  fun sumc (c, [], qs)       = carry (c,qs)
+    | sumc (c, ps, [])       = carry (c,ps)
     | sumc (c, p::ps, q::qs) =
         ((c+p+q) mod 2)::sumc((c+p+q) div 2, ps, qs);
 
@@ -58,16 +58,16 @@ struct
   fun sum (ps,qs) = sumc (0,ps,qs);
 
   (* Skip for 0, double for 1 and add recursively *)
-  fun prod ([], _) = []
+  fun prod ([], _)     = []
     | prod (0::ps, qs) = 0::prod(ps,qs)
     | prod (1::ps, qs) = sum(qs, 0::prod(ps,qs));
 
   (* 3.16: subtraction - Online solution *)
   infix $$;
   (* This is beautiful. Think of it like a special cons. *)
-  fun 0 $$ [] = []          (* Gets rid of any leading 0s *)
+  fun 0 $$ []   = []          (* Gets rid of any leading 0s *)
     | n $$ [~1] = [~1]      (* Propogate/signal that result *)
-    | n $$ ns = n::ns;      (* is negative. Otherwise, cons *)
+    | n $$ ns   = n::ns;      (* is negative. Otherwise, cons. *)
 
   (* Equivalent to subtract one *)
   fun borrow (0, ps) = ps           (* Nothing to borrow *)
@@ -117,7 +117,7 @@ struct
       end;
 
   (*Scan down list counting bits in k; get position of last "1" (in n). *)
-  fun lastone (n,k,[]) = n
+  fun lastone (n,k,[])    = n
     | lastone (n,k,0::ps) = lastone(n,k+1,ps)
     | lastone (n,k,1::ps) = lastone(k,k+1,ps);
 
@@ -165,8 +165,8 @@ fun toBin_from_dec [] = []
 fun toDec_from_bin [] = []
   | toDec_from_bin (x::xs) =
   let
-    fun double (0, []) = []
-      | double (c, []) = [c]
+    fun double (0, [])    = []
+      | double (c, [])    = [c]
       | double (c, d::ds) =
       let val next = c + 2*d        (* Compute newest digit *)
       in (next mod 10)::double(next div 10, ds) end

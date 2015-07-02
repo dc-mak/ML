@@ -133,7 +133,7 @@ fun gcd (m, n) =
  * multiple things, but local works for multiple as well. So, dunno.
  *)
 
-(* 2.21: Online solution *)
+(* 2.21: Online solution. Newton Raphson is **way** easier and simpler. *)
 fun introot n =
   if n < 4 then (1, n-1)
   else
@@ -205,13 +205,13 @@ fun introot n =
 (* 2.22: Equivalent to this: val pi = log2 and log2 = pi *)
 
 (* 2.23: Try this, exponential. *)
-fun p_n n = if n <= 1 then 1 else 1 + sum_pn (n-1)
+fun p_n n    = if n <= 1 then 1 else 1 + sum_pn (n-1)
 and sum_pn n = if n <= 1 then 1 else p_n n + sum_pn (n-1);
 
 (* Efficient, because Maths ftw! *)
 fun P_n n =
   let fun pn (count, acc) =
-      if count <= 1 then acc else pn (count-1, 2*acc)
+          if count <= 1 then acc else pn (count-1, 2*acc)
   in  pn (n, 1) end;
 
 (* 2.24 *)
@@ -244,9 +244,9 @@ struct
   fun norm ((a,b) : t) =
   let
     val (x,y) = (Int.abs a, Int.abs b)
-    val hcf = gcd (x,y)
-    fun sgn x = if x < 0 then ~1 else 1
-    val sign = sgn a * sgn b
+    val hcf   = gcd (x,y)
+    fun sgn x =  if x < 0 then ~1 else 1
+    val sign  = sgn a * sgn b
     val (p,q) = if sign = 1 then (x, y) else (~x, y)
    in
      (p div hcf, q div hcf)
@@ -254,16 +254,14 @@ struct
   fun sum  ((a,b):t, (x,y):t) = norm (a*y + b*x, b*y)
   fun diff ((a,b):t, (x,y):t) = norm (a*y - b*x, b*y)
   fun prod ((a,b):t, (x,y):t) = norm (a*x, b*y)
-  fun quo  (ab, (x,y):t) = prod (ab, (y,x))
+  fun quo  (ab,      (x,y):t) = prod (ab, (y,x))
 end;
 
 (* 2.26: We see n=1 is used so n must be of type int. curr and prev must be of
  * the same type, either int or real. Because the funtion is annotated to return
  * int, we see curr has type int and so too does prev. Hence the type is:
- *              val itfib = fn : int * int * int => int.
- *)
+ *              val itfib = fn : int * int * int => int. *)
 
 (* 2.27: From k=0, we see k is of type int and the return is of type int.
  * However, unless f = fn : int -> int has been previously declared somewhere,
- * this presumably recursive call will cause a type mismatch in the clause.
- *)
+ * this presumably recursive call will cause a type mismatch in the clause. *)

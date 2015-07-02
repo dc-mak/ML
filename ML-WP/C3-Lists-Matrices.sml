@@ -7,32 +7,32 @@
  * lists as arguments which are then return and recursed till stack overflow. *)
 
 (* 3.21: *)
-fun transp2 [] = []
+fun transp2 []      = []
   | transp2 (y::ys) =
   let
     fun lst [] = []
       | lst (x::xs) = [x]::lst xs;
 
-    fun join ([], ys) = []
-      | join (xs, []) = lst xs
+    fun join ([],    ys)    = []
+      | join (xs,    [])    = lst xs
       | join (x::xs, y::ys) = (x::y)::join(xs,ys);
   in
     join(y, transp2 ys)
   end;
 
 (* 3.22: *)
-fun neglist [] = [] : real list
+fun neglist []      = [] : real list
   | neglist (y::ys) = ~y::neglist ys;
 
-fun negmat [] = []
+fun negmat []      = []
   | negmat (x::xs) = neglist x::negmat xs;
 
 (* 3.23: inexhaustive pattern matching so that we know when matrices are
  * not of the same dimensions. *)
-fun matadd ([], []) = []
+fun matadd ([], [])       = []
   | matadd (x::xs, y::ys) =
   let
-    fun rowadd ([], []) = [] : real list
+    fun rowadd ([], [])       = [] : real list
       | rowadd (t::ts, u::us) = t+u::rowadd(ts,us)
   in
     rowadd(x,y)::matadd(xs,ys)
@@ -47,25 +47,25 @@ fun matadd ([], []) = []
 (* 3.25: pivotrows finds the first row with the largest head value and
  * delrow finds and deletes the first. *)
 
-fun dotprod ([], []) = 0.0
+fun dotprod ([], [])       = 0.0
   | dotprod (x::xs, y::ys) = x*y + dotprod (xs, ys)
 
 (* This could have all been replaced with a bunch of maps *)
-fun cons (x, []) = []
+fun cons (x, [])    = []
   | cons (x, y::ys) = (x::y)::cons(x, ys)
 
-fun rmcols [] = []
+fun rmcols []      = []
   | rmcols (x::xs) = xs::cons (x, rmcols xs)
 
 (* 3.26: *)
-fun matdet [[x]] = x
+fun matdet [[x]]          = x
   | matdet [[a,b], [c,d]] = a*d - b*c
-  | matdet (z::zs) =
+  | matdet (z::zs)        =
   let
-    fun submats [] = []
+    fun submats []      = []
       | submats (y::ys) = rmcols y::submats ys
 
-    fun subdets [] = []
+    fun subdets []      = []
       | subdets (m::ms) = matdet m::subdets ms
   in
     dotprod (z, subdets (transp2 (submats zs)))
@@ -73,32 +73,32 @@ fun matdet [[x]] = x
 
 (* Online solution: modified gausselim *)
 (* This should never be passed [] hence inexhaustive patterns. *)
-fun pivotrow [row] = row : real list
+fun pivotrow [row]              = row : real list
   | pivotrow (row1::row2::rows) = if Real.abs (hd row1) >= abs (hd row2)
                                     then pivotrow (row1::rows)
                                     else pivotrow (row2::rows);
 
-fun delrow (p, []) = []
+fun delrow (p, [])        = []
   | delrow (p, row::rows) = if Real.==(p,hd row) then rows
                             else row::delrow (p, rows);
 
-fun scalarprod (k, []) = [] : real list
+fun scalarprod (k, [])    = [] : real list
   | scalarprod (k, x::xs) = k*x :: scalarprod (k,xs);
 
 (* Only want to add rows of the same size, hence inexhaustie patterns. *)
-fun vectorsum ([], []) = [] : real list
+fun vectorsum ([], [])       = [] : real list
   | vectorsum (x::xs, y::ys) = x+y::vectorsum (xs,ys);
 
 (* Online solution *)
 (* Again, this should never be passed [] hence inexhaustive patterns. *)
-fun gausselim [row] = ([row], 1.0)
+fun gausselim [row]  = ([row], 1.0)
   | gausselim (rows) =
   let
     (* pivotrow will never return [], hence inexhaustive patterns. *)
     val p::prow = pivotrow rows
     (* Check only first value in matrix. *)
     val samerow = Real.== (abs (hd (hd rows)), abs p)
-    fun elimcol [] = []
+    fun elimcol []              = []
       | elimcol ((x::xs)::rows) =
       vectorsum (xs, scalarprod(~x/p, prow))::elimcol rows
     val (g_rows, odd) = gausselim (elimcol (delrow (p, rows)))
@@ -116,7 +116,7 @@ fun solutions [] = [~1.0]
   end;
 
 fun det_tri rows =
-  let fun tri ([], res) = res
+  let fun tri ([], res)            = res
         (* Again, rows will be non-empty, hence inexhaustive patterns. *)
         | tri ((x::xs)::rows, res) = tri (rows, x*res);
   in tri rows end;
@@ -124,30 +124,30 @@ fun det_tri rows =
 (* 3.27: See online solutions for more concise alternative...
  * Create identity matrix to append onto the right. *)
 fun matid size =
-  let fun id (res, 0) = res
-        | id ([], n) = id ([[1.0]], n-1)
+  let fun id (res, 0)          = res
+        | id ([], n)           = id ([[1.0]], n-1)
         (* All rows will be non-empty, hence inexhaustive patterns. *)
         | id (((x::xs)::y), n) =
           id ((1.0::0.0::xs)::cons(0.0,(x::xs)::y), n-1)
   in id ([], size) end;
 
 (* Map multiply by x over list *)
-fun mult (n, []) = [] : real list
+fun mult (n, [])    = [] : real list
   | mult (n, x::xs) = n*x::mult(n,xs);
 
 (* TODO: Redo better *)
 (* Assert that ys only has one element by the end of it *)
-fun addrows (x::xs, [y], 1) = mult(~x,y)
+fun addrows (x::xs, [y], 1)   = mult(~x,y)
   | addrows (x::xs, y::ys, n) =
-    vectorsum(mult(~x, y), addrows(xs, ys, n-1));
+      vectorsum(mult(~x, y), addrows(xs, ys, n-1));
 
 (* Modified solutions function for matrix inversion. *)
-fun back_sub [x::xs] = [1.0::mult(1.0/x, xs)]
+fun back_sub [x::xs]         = [1.0::mult(1.0/x, xs)]
   | back_sub ((x::xs)::rows) =
   let
     val solved = cons(0.0, back_sub rows)
     (* Multiply each row by corresponding value in current row *)
-    val rest = addrows (xs, solved, length solved)
+    val rest   = addrows (xs, solved, length solved)
     (* Add sum of previous to current row then normalise *)
     val n::new_row = vectorsum(x::xs, rest)
   in
@@ -158,7 +158,7 @@ fun back_sub [x::xs] = [1.0::mult(1.0/x, xs)]
 fun extract_sol rows =
   let
     val size = length rows
-    fun droprows [] = []
+    fun droprows []      = []
       | droprows (x::xs) =
       List.drop (x, size) :: droprows xs
   in
@@ -169,7 +169,7 @@ fun extract_sol rows =
 fun matinverse rows =
 (* Inexhaustive pattern matching so that we know when matrices are
  * not of the same dimensions. *)
-  let fun app ([], []) = []
+  let fun app ([], [])       = []
         | app (x::xs, y::ys) = (x@y)::app(xs,ys)
   in
     extract_sol (back_sub (#1(gausselim (app (rows, matid (length rows))))))
@@ -185,7 +185,7 @@ fun zeroes 0 = []                        (* Simple enough function. *)
  *          (0  0  f | r )
  * by isolating appropriate column through id matrix dot and then
  * storing values for ~r/f and ~(q-e/r)/d and so on. *)
-fun rsolutions (endrow, []) = endrow
+fun rsolutions (endrow, [])            = endrow
   | rsolutions (endrow, (x::xs)::rows) =
       let val solns = rsolutions(endrow,rows)
       in ~(dotprod(solns,xs)/x) :: solns end;
@@ -194,7 +194,7 @@ fun inverse rows =
   let val n = length rows
       (* To generate id matrix on the side. *)
       fun idrow(x,k) = zeroes(k-1) @ [x] @ zeroes(n-k)
-      fun newrows ([], k) = []
+      fun newrows ([], k)        = []
         | newrows (row::rows, k) =
               (row @ idrow(1.0,k)) :: newrows(rows, k+1)
       (* Solve as normal. *)
@@ -208,4 +208,6 @@ fun inverse rows =
 (* 3.28: A simple solution would be to have a boolean 'first_call' which is
  * true for the initial call of any function and false for any subsequent
  * recursive ones. That way, we can tell if a [] matrix represents a zero or
- * mismatched matrix dimensions. *)
+ * mismatched matrix dimensions.
+ * Alternatively, we can check the dimensions of a matrix thoroughly each time
+ * before performing any operations on it. *)
