@@ -1,4 +1,4 @@
-(* 3.1 *)
+(* 3.1: *)
 fun null []     = true
   | null (_::_) = false;
 
@@ -13,7 +13,7 @@ fun maxl xs =
                              else maxl (n::ns)
   end;
 
-(* 3.2 *)
+(* 3.2: *)
 fun lst [m]     = m
   | lst (_::ms) = lst ms;
 
@@ -26,11 +26,11 @@ end;
 
 (* 3.3: They'd raise an exception Match/return the list as is, respectively. *)
 
-(* 3.4 *)
+(* 3.4: *)
 fun nth (m::l, n) = if n <= 0 then m else nth (l, n-1);
 (* or online solution: fun nth (l,n) = hd (drop (l,n)) *)
 
-(* 3.5 *)
+(* 3.5: *)
 infixr 5 @;
 fun [] @ ys = ys
   | xs @ [] = xs
@@ -73,7 +73,7 @@ fun [] @ ys = ys
  * pattern-matching out any empty lists except the last one?
  * Correction: Uses *one deep recursion* so may cause stack overflow. *)
 
- (* 3.9 *)
+(* 3.9: *)
 fun zip (_, [])        = []
   | zip ([], _)        = []
   | zip (x::xs, y::ys) = (x,y)::zip (xs, ys);

@@ -17,7 +17,7 @@
  * First one: ~1 -> / and 10 -> :
  * Second one: some sort of exception (Subscript ?) raised. *)
 
-(* 2.5 *)
+(* 2.5: *)
 type date = int * string;
 fun check_date ((d, m) : date) =
   (d > 0) andalso
@@ -42,7 +42,7 @@ fun is_before ((h1, m1, ampm1) : time, (h2, m2, ampm2) : time) =
     (ampm1 = "AM" andalso (h1 < h2 orelse
                            h1 = h2 andalso m1 < m2)));
 
-(* 2.7 *)
+(* 2.7: *)
 type old_eng_money = int * int * int;
 fun to_pence ((pnd, sh, p) : old_eng_money) = p + 12 * (sh + 20*pnd);
 
@@ -55,7 +55,7 @@ fun sub_oem (amt1, amt2) = to_oem (to_pence amt1 - to_pence amt2);
 
 (* 2.8: Correction: king -> int. *)
 
-(* 2.9 Functions need fixed record types but selectors do not. *)
+(* 2.9: Functions need fixed record types but selectors do not. *)
 
 (* 2.10:
  * powoftwo 8 => 8 = 1 orelse (even 8 andalso ...)
@@ -214,7 +214,7 @@ fun P_n n =
           if count <= 1 then acc else pn (count-1, 2*acc)
   in  pn (n, 1) end;
 
-(* 2.24 *)
+(* 2.24: *)
 structure Real =
 struct
   type t = real

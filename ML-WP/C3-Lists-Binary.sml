@@ -1,4 +1,4 @@
-(* 3.15 *)
+(* 3.15: *)
 fun bincarry (false, ps)    = ps
   | bincarry (true,  [])    = [true]
   | bincarry (true,  p::ps) = not p :: bincarry (p, ps);
