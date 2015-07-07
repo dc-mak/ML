@@ -1,0 +1,28 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+  <meta name="generator" content="HTML Tidy for Mac OS X (vers 14 February 2006), see www.w3.org">
+  <title>Notes on Compatibility</title>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+  <link href="../../css/main.css" rel="stylesheet" media="screen" type="text/css">
+  <link href="../../css/print.css" rel="stylesheet" media="print" type="text/css">
+</head>
+<body>
+  <h1>Notes on Compatibility</h1>
+  <p>The sample programs rely on the Standard ML <a href="https://www.cs.princeton.edu/~appel/smlnj/basis/">Basis Library</a>.</p>
+  <p>Starting with Chapter 7, they also rely (to a minor extent) on recent changes to ML itself. I am distributing the code in a form suitable for  up-to-date ML compilers, alongside  versions of the programs for chapters 3, 8 and 10  for use with older compilers.Older compilers (pre-1998) might be incompatible in three respects:</p>
+<ul>
+    <li>Instead of <kbd>Real.==(x,y)</kbd>, they might use <kbd>x=y</kbd> to test equality on real numbers. This affects code for Chapter 3.</li>
+    <li>Instead of value polymorphism, they might have weak (imperative) type variables such as <kbd>'_a</kbd>. (Chapters 8 and 10.)</li>
+    <li>Instead of the :&gt; syntax, they might use the <kbd>abstraction</kbd> keyword to indicate opaque signature constraints. (Chapters 8 and 10.)</li>
+  </ul>
+  <p>Complicating matters further, in 2004 the ML Basis Library was modified slightly. Compilers compliant with the changes reject a few of the functions presented in the book. To address this issue, post-2004 versions of the code for chapters 8 and 9 are provided.</p>
+  <ul>
+    <li>The function Substring.all was renamed to Substring.full</li>
+    <li>The type of the function TextIO.inputLine was  changed to return a <kbd>string option</kbd> rather than a <kbd>string</kbd>. It now returns <kbd>NONE</kbd> if the input stream has run out. </li>
+  </ul>
+  <p>Later chapters sometimes refer to code presented in earlier chapters. However, if you compile the code for all the chapters in order, there should be no compilation errors.</p>
+<hr>
+  <p><a href="index.html">Back</a> to ML for the Working Programmer, main page</p>
+</body>
+</html>
