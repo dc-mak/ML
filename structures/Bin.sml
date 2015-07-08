@@ -22,8 +22,6 @@ these programs or functions.
 Additional comments added by Dhruv Makwana.
 ****)
 
-use "structures/ARITH.sig";
-
 signature BINARY =
   sig
   include ARITH

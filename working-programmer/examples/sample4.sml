@@ -372,4 +372,3 @@ fun negatives (Atom _)      = []
 
 fun taut (Conj(p,q)) = taut p andalso taut q
   | taut p = not (null (inter (positives p, negatives p)));
-

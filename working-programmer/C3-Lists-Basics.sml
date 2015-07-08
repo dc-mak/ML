@@ -14,8 +14,8 @@ fun maxl xs =
   end;
 
 (* 3.2: *)
-fun lst [m]     = m
-  | lst (_::ms) = lst ms;
+fun last [m]     = m
+  | last (_::ms) = last ms;
 
 local
   fun addlen (n, [])   = n

@@ -32,9 +32,10 @@ fun choose (0, xs)    = [[]]
  * *nested* calls but cprod takes m*n *nested* calls. *)
 
 (* 3.36: Corrected with online solution. *)
-use "working-programmer/examples/sample3.sml";
+use "working-programmer/examples/sample3-sets.sml";
+use "working-programmer/examples/sample3-graphs.sml";
 
-fun pathsort graph =
+fun pathsort' graph =
   let
     fun sort ([], path, visited)    = [visited]
       | sort (x::xs, path, visited) =
@@ -43,8 +44,8 @@ fun pathsort graph =
         if x mem visited then visited
         else
           let fun prop [] = []
-                | prop [xs] = [x::xs]
-          in prop (sort(nexts(x,graph), x::path, visited)) end)
+                | prop [xs] = x::xs
+          in prop (sort (nexts (x,graph), x::path, visited)) end)
     val (starts, _) = ListPair.unzip graph
   in
     sort (starts, [], [])
@@ -96,6 +97,7 @@ fun findrange ([], i, j)    = []
     in if j < i then [] else part ([], [], bs) end;
 
 (* 3.41: *)
+use "working-programmer/examples/sample3-sorting.sml";
 fun generate_list () = randlist (10000000, 1.0, []);
 
 fun alts ([], xs, ys)       = (xs, ys)

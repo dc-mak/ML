@@ -94,16 +94,9 @@ infixr 5 andf;
 fun f andf g = fn x => (f x) andalso (g x);
 
 (* 5.14: Combinators *)
-fun k x y      = x;
-fun s x y z    = x z (y z);
+use "working-programmer/examples/sample5-basics.sml";
 
-(* Purely just for readability and convenience in currying two-tuple functions. *)
-fun secpre f x y = f (x,y);
-fun secinf x f y = f (x,y); (* secl *)
-fun secpos f y x = f (x,y); (* secr *)
-
-infix mem;
-fun x mem xs = List.exists (secpre op= x) xs;
+fun secp f x y = f (x,y);
 
 fun newmem (x,xs) = if x mem xs then xs else x::xs;
 
@@ -121,7 +114,7 @@ val dotprod = ListPair.foldlEq (fn (x,y,e) => x*y+e) 0;
  * fun dotprod pairs = fold op+ 0.0 (ListPair.mapEq op* pairs) *)
 
 fun matprod (rowsA, rowsB) =
-  let fun rowprod cols row = map (secpre dotprod row) cols
+  let fun rowprod cols row = map (secp dotprod row) cols
   in  map (rowprod (transp rowsB)) rowsA end;
 (* Online solution:
  * let val colsB = transp rowsB
@@ -130,49 +123,19 @@ fun matprod (rowsA, rowsB) =
 (* 5.16: Not lazy enough, traverses whole list. *)
 fun exists' pred = foldl (fn (x,e) => pred x orelse e) false;
 
-(* Testing the fastest for cartestian product. *)
-fun fcprod xs ys = foldr (fn(x,e) => (foldr (fn(y,l)=>(x,y)::l) e ys)) [] xs;
-fun lcprod xs ys = List.concat (map (fn x => map (fn y => (x,y)) ys) xs);
-local val (a,m) = (1678.0, 2147483647.0) in
-      fun nextrand seed =
-      let val t = a * seed
-      in t - m * real (floor (t/m)) end
-end;
-fun randlist (n, seed, tail) =
-      if n = 0 then (seed, tail)
-      else randlist (n-1, nextrand seed, seed::tail);
-
-fun makexs() = #2(randlist (7200, 1.0, []));
-
-fun time cartprod xs  =
- let
-   val cPU_time   = Timer.startCPUTimer()
-   and real_time  = Timer.startRealTimer()
-   val cartesian  = cartprod xs xs
- in
-   (Timer.checkCPUTimer cPU_time, Timer.checkRealTimer real_time)
-  end;
-(* > time fcprod xs_eval;
- * val it = ({sys = 1.459, usr = 37.881}, 28.890):
- *    {sys: Time.time, usr: Time.time} * Time.time
- * > time lcprod xs_eval;
- * val it = ({sys = 1.872, usr = 426.993}, 320.633):
- *    {sys: Time.time, usr: Time.time} * Time.time   *)
-
 (* 5.17: Corrected to remove redundant set mem check. Online solution does it
- * with nested foldls, which I reduced copying but makes it less readable. *)
-fun set_sub (xs, ys) =
+ * with nested foldls, which reduces copying but makes it less readable. *)
+fun pos_diff_set (xs, ys) =
   let
-    fun pairup (x,pairs) = foldr (fn(y,l) => (x,y)::l) pairs ys
-    val cartprod         = foldr pairup [] xs
     fun filter ((x,y),e) = if y>x then newmem (y-x,e) else e
   in
-    foldl filter [] cartprod
+    foldl filter [] (cartprod (xs, ys))
   end;
-(* fun posDiffs (xs,ys) =
- *     foldr (fn (x,e) => (
- *       foldr (fn (y,l) => if y<x then y-x::l else l) e ys))
- *     [] xs;       *)
+
+(* Online solution *)
+fun posDiffs (xs,ys) =
+    foldr (fn (x,e) => (
+      foldr (fn (y,l) => if y<x then y-x::l else l) e ys)) [] xs;
 
 (* 5.18: *)
 datatype 'a tree = Lf | Br of 'a * 'a tree * 'a tree;
@@ -181,10 +144,6 @@ fun prefold f e Lf              = []
   | prefold f e (Br(x, tl, tr)) = f(x, prefold f (prefold f e tr) tl);
 
 (* 5.19: *)
-fun repeat f n x =
-    if n > 0 then repeat f (n-1) (f x)
-             else x;
-
 fun fib n =
   let fun fibaux (n, k) = (k, n+k)
   in  repeat fibaux n (0,1) end;
@@ -267,15 +226,8 @@ fun take (xq, 0)     = []
 
 (* 5.27: *)
 datatype 'a seq = Nil | Cons of 'a * (unit -> 'a seq);
-
-fun null Nil = true | null (Cons(_, _)) = false;
-
-fun drop (xf, 0)            = xf
-  | drop (Nil, n)           = raise Subscript
-  | drop (Cons(x, xf), n) = drop (xf(), n-1);
-
-fun toList Nil          = []
-  | toList (Cons(x,xf)) = x::toList (xf());
+use "structures/SEQUENCE.sig";
+use "structures/Seq.sml";
 
 (* 5.28:
  * add(from 5, squares (from 9))
@@ -289,15 +241,11 @@ fun toList Nil          = []
  *              Cons(100, fn () => squares (Cons(11, fn () => from 12))))) *)
 
 (* 5.29: *)
-infixr app;
-fun Nil app yf = yf
-  | (Cons(x,xf)) app yf = Cons (x, fn () => (xf() app yf));
-
-fun duplicate (xf, 0) = Nil
-  | duplicate (Nil, k) = Nil
+fun duplicate (xf, 0)         = Nil
+  | duplicate (Nil, k)        = Nil
   | duplicate (Cons(x,xf), k) =
     Cons (x, fn () =>
-      duplicate (Cons(x, fn () => Nil), k-1) app duplicate (xf(), k));
+      Seq.@(duplicate (Cons(x, fn () => Nil), k-1), duplicate (xf(), k)));
 
 (* Online solution. *)
 fun repelt k Nil          = Nil
@@ -322,6 +270,7 @@ fun dropwhile pred Nil = Nil
   | dropwhile pred (Cons(x,xf)) =
     if pred x then dropwhile pred (xf()) else Cons(x, xf);
 
+(* Could fail. *)
 fun exists pred Nil          = false
   | exists pred (Cons(x,xf)) = pred x orelse exists pred (xf());
 
@@ -333,14 +282,9 @@ fun exists pred Nil          = false
  * Alternatively, secl 1.0 op+ o secl (x / real n) op* for the map function,
  * for no bound variables and much less readability. *)
 
-fun tlq (Cons(x,xf)) = xf() | tlq Nil = raise Empty;
-
-fun mapq f Nil          = Nil
-  | mapq f (Cons(x,xf)) = Cons(f x, fn () => mapq f (xf()))
-
 fun e_to x =
   let fun apprx n = Cons(1.0, fn () =>
-                         mapq (fn y => 1.0 + y*x/real n) (apprx (n+1)))
+                         Seq.map (fn y => 1.0 + y*x/real n) (apprx (n+1)))
   in  apprx 1 end;
 
 (* 5.33: For testing relative difference. *)
@@ -353,17 +297,9 @@ fun within eps (Cons(x,xf)) =
  * clause, enumerate will never terminate on this. *)
 
 (* 5.35: *)
-fun secl x f y = f (x,y);
-fun take (Cons(x,xf), 1) = ([x], xf())
-  | take (Nil, _)        = ([], Nil)
-  | take (Cons(x,xf), n) = (fn (l, f) => (x::l, f)) (take (xf(), n-1));
-
-fun interleave (Nil, yf)        = yf
-  | interleave (Cons(x,xf), yf) = Cons(x, fn () => interleave (yf, xf()));
-
 fun numlists n =
     Cons([n], fn () =>
-      interleave (mapq (secl n op::) (numlists 0), numlists (n+1)));
+      Seq.interleave (Seq.map (secl n op::) (numlists 0), numlists (n+1)));
 
 (* 5.36: Base case: k = 1. For existence, let (1,1) be a withness to the
  * existence of the solution. For uniqueness, argue by contradiction. Assume
@@ -387,28 +323,24 @@ fun numlists n =
  *           2j -1     2^(i-1)  - both unique for all positive integers. *)
 
 (* 5.37: *)
-datatype 'a treeq = Lq | Bq of 'a * (unit -> 'a treeq) * (unit -> 'a treeq);
+datatype 'a treeq = Lfq | Brq of 'a * (unit -> 'a treeq) * (unit -> 'a treeq);
 
-fun itr n = Bq (n, fn () => itr (2*n), fn () => itr (2*n+1));
+fun itr n = Brq (n, fn () => itr (2*n), fn () => itr (2*n+1));
 
 (* 5.38: Interleaved preorder. *)
-fun toSeq (Bq(n, lf, rf)) =
-      Cons(n, fn () => interleave (toSeq (lf()), toSeq (rf())));
+fun toSeq (Brq(n, lf, rf)) =
+      Cons(n, fn () => Seq.interleave (toSeq (lf()), toSeq (rf())));
 
 (* 5.39: I knew that the online solutions would use mutual recursion. *)
-fun dropq (Cons(x,xf), 0) = Cons(x,xf)
-  | dropq (Nil, _)        = raise Subscript
-  | dropq (Cons(x,xf), n) = dropq (xf(), n-1);
-
 fun altern Nil          = Nil
-  | altern (Cons(x,xf)) = Cons(x, fn () => altern (dropq (xf(), 1)));
+  | altern (Cons(x,xf)) = Cons(x, fn () => altern (Seq.drop (xf(), 1)));
 
 (* Really, very wasteful because elements that are skipped over (a) still have
  * be evaluated and (b) grow exponentially over each sequence. *)
-fun toBq Nil = Lq
-  | toBq (Cons(x,xf)) =
-      Bq(x, fn () => toBq (altern (xf())),
-            fn () => toBq (altern (dropq (xf(), 1))));
+fun toBrq Nil          = Lfq
+  | toBrq (Cons(x,xf)) =
+      Brq(x, fn () => toBrq (altern (xf())),
+             fn () => toBrq (altern (Seq.drop (xf(), 1))));
 
 (* 5.39: *)
 fun depthFirst pred next x =
@@ -434,7 +366,7 @@ fun bestFirst pred next x =
   let fun bfs []      = Nil
         | bfs ((y,d)::ys) =
         let val rest = ys @ (map (fn z => (z, d+1)) (next y))
-        in  if pred y then Cons (y, fn () => bfs rest) else bfs rest end
+        in  if pred y then Cons(y, fn () => bfs rest) else bfs rest end
   in bfs [(x,0)] end;
 
 (* 5.41: I imagine the conditional costs just a little bit extra. *)
@@ -447,18 +379,11 @@ fun depthIter' next maxDepth x =
   in deepen 0 end;
 
 (* 5.42: Same ordering as BFS *)
-fun filterq pred Nil          = Nil
-  | filterq pred (Cons(x,xf)) =
-      if pred x then
-        Cons(x,fn () => filterq pred (xf()))
-      else
-        filterq pred (xf());
-
 fun nextChar l = [#"A"::l, #"B"::l, #"C"::l];
 
 fun isPalin l = (l = rev l);
 
-fun show n csq = map implode (#1(take (csq, n)));
+fun show n csq = map implode (take (csq, n));
 
 fun depthIter'' next d x =
   let fun dfs k (y, sf) =
@@ -468,16 +393,16 @@ fun depthIter'' next d x =
             dfs k (x, fn () => deepen (k+d)) ()
   in deepen 0 end;
 
-val palins = (filterq isPalin (depthIter'' nextChar 5 []));
+val palins = (Seq.filter isPalin (depthIter'' nextChar 5 []));
 
 (* 5.43: An empty tree can't be constructed like this. *)
-datatype 'a fintree = Nlf | Bf of 'a * (unit -> 'a fintree list);
+datatype 'a fintree = Nlf | Brf of 'a * (unit -> 'a fintree list);
 
-fun gentree next x = Bf(x, fn () => map (gentree next) (next x));
+fun gentree next x = Brf(x, fn () => map (gentree next) (next x));
 
 (* Online solution: A next function, using the both the definitions, cannot
  * represent Branch(1, [fn () => (Branch(1, [])]). *)
- datatype 'a finseq = Branch of 'a * (unit -> 'a finseq) list;
+datatype 'a finseq = Branch of 'a * (unit -> 'a finseq) list;
 
 fun finseq_of next x =
     Branch(x, map (fn y => fn () => finseq_of next y) (next x));

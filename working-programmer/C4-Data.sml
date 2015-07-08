@@ -76,8 +76,9 @@ fun title' per =
 
 (* 4.12: See Labyrinth.sml for iterative deepening. *)
 
-(* 4.13: *)
-datatype 'a tree = Lf | Br of 'a  * 'a tree * 'a tree;
+(* 4.13: Linear in number of nodes. *)
+datatype 'a tree = Lf | Br of 'a * 'a tree * 'a tree;
+
 fun compsame (x, 0) = Lf
   | compsame (x, n) = Br (x, compsame (x, n-1), compsame (x, n-1));
 
@@ -87,8 +88,7 @@ fun balanced Lf              = 0
    case (balanced xl, balanced xr) of
             (~1, _)     => ~1
           | (_, ~1)     => ~1
-          | (l,  r)     =>
-              if abs(l-r) <= 1 then l+r+1 else ~1;
+          | (l,  r)     => if abs(l-r) <= 1 then l+r+1 else ~1;
 (* 4.15: *)
 fun reflection (Lf, Lf)                    = true
   | reflection (Br(x,xl,xr), Br(y,yl, yr)) =
@@ -96,17 +96,17 @@ fun reflection (Lf, Lf)                    = true
   | reflection _                           = false;
 
 (* 4.16: *)
-datatype 'a nlist = Nil | Ls of 'a * 'a nlist;
+datatype 'a nlist = Nl | Cs of 'a * 'a nlist;
 (* Online solution: 
  * infixr ::;
  * datatype 'a list = nil | :: of 'a * 'a list; *)
 
 (* 4.17: *)
-datatype ('a, 'b) ntree = Lv of 'b
-                        | Bv of 'a * ('a, 'b) ntree * ('a, 'b) ntree;
+datatype ('a, 'b) ltree = Lfl of 'b
+                        | Brl of 'a * ('a, 'b) ltree * ('a, 'b) ltree;
 
 (* 4.18: *)
-datatype 'a btree = Lb | Bb of 'a * 'a btree list;
+datatype 'a btree = Lfb | Brb of 'a * 'a btree list;
 
 (* 4.19: @ associates to the right (infixr @).
  *
@@ -170,16 +170,12 @@ datatype 'a btree = Lb | Bb of 'a * 'a btree list;
 
 (* 4.21: fun postorder t = rev (preorder (reflect t)); *)
 
-(* 4.22: Questions are getting tricky. See 2013.1.2/1993.1.? answer. *)
-(* Cartesian product needed. *)
-fun cartprod ([],   ys) = []
-  | cartprod (x::xs, ys) = 
-    let val xsprod = cartprod (xs, ys)
-        fun xpair [] = xsprod
-          | xpair (y::ytail) = (x,y)::xpair ys
-    in xpair ys end;
+(* 4.22: Questions are getting tricky. My solution: adaptation of 2013/1993
+ * attempt without map. Should have been more inventive. It's irritating how
+ * concise some of these online solutions are. *)
 
-(* My solution: adaptation of 2013/1993 attempt without map. *)
+use "working-programmer/examples/sample3-sets.sml";
+
 fun pre []      = [Lf]
   | pre (x::xs) = 
    (* Split a list into all possible ordered sublists for preorder. *)
@@ -219,18 +215,10 @@ fun allpre []      = [Lf]
  *            [1,5,4,3,2], [5,1,2,3,4], 
  *            [5,1,4,2,3], [1,5,2,4,3]. *)
 
-signature DICTIONARY =
-  sig
-  type key
-  type 'a t
-  exception E of key
-  val empty : 'a t
-  val lookup : 'a t * key -> 'a
-  val insert : 'a t * key * 'a -> 'a t
-  val update : 'a t * key * 'a -> 'a t
-  end;
+(* 4.25: *)
+use "structures/DICTIONARY.sig";
 
-structure Dict : DICTIONARY =
+structure DictList : DICTIONARY =
   struct
   type key  = string
   type 'a t = (key * 'a) list
@@ -269,9 +257,7 @@ fun makearray (x,0) = Lf
 fun braunlist Lf            = []
   | braunlist (Br(x,xl,xr)) = 
     let val (left, right) = (braunlist xl, braunlist xr)
-        fun interleave ([], ys) = ys
-          | interleave (x::xs, ys) = x::interleave (ys, xs)
-    in  x::interleave(left, right) end;
+    in  x::inter(left, right) end;
 
 (* 4.28: By labels, it can mean any value. Took a quick look at structure of
  * online soltuions in order to understand what question wanted. *)
@@ -341,23 +327,22 @@ fun update (Lf, k, w)            =
  * Converting this to binary is left is append 0 and right is append 1. *)
 
 (* 4.31: Similar to Braun.sub and update with differences discussed above. *)
-fun heapsub (tree, n) =
-  let fun toBin (0, xs) = xs
-        | toBin (n, xs) = toBin (n div 2, (n mod 2)::xs)
-      fun sub (Lf, _)                = raise Subscript
+use "structures/ARITH.sig";
+use "structures/Bin.sml";
+
+fun func_array_sub (tree, n) =
+  let fun sub (Lf, _)                = raise Subscript
         | sub (Br(x, xl, xr), [])    = x
         | sub (Br(x, xl, xr), 0::ys) = sub (xl, ys)
         | sub (Br(x, xl, xr), 1::ys) = sub (xr, ys)
-  in  sub (tree, toBin (n, [])) end;
+  in  sub (tree, Bin.fromInt n) end;
 
-fun heapupdate (tree, n, y) =
-  let fun toBin (0, xs) = xs
-        | toBin (n, xs) = toBin (n div 2, (n mod 2)::xs)
-      fun update (Lf, _)             = raise Subscript
+fun func_array_update (tree, n, y) =
+  let fun update (Lf, _)             = raise Subscript
         | update (Br(x, xl, xr), [])    = Br(y, xl, xr)
         | update (Br(x, xl, xr), 0::ys) = update (xl, ys)
         | update (Br(x, xl, xr), 1::ys) = update (xr, ys)
-  in  update (tree, toBin (n, [])) end;
+  in  update (tree, Bin.fromInt n) end;
 
 (* I quote, the online solution: "This is something of a joke [...]"
  * Well, we can see that my solution's storage requirements can be quite high
@@ -365,15 +350,12 @@ fun heapupdate (tree, n, y) =
 fun left n = if n>3 then left (n div 2) else (n=2);
 fun chop n = if n>3 then 2*chop(n div 2) + n mod 2 else 1;
 
-(* 4.32: *)
-datatype prop = Atom of string
-              | Neg  of prop
-              | Conj of prop * prop
-              | Disj of prop * prop;
-
-(* Online solution is probably more scalable for multiple operators of the
+(* 4.32: Online solution is probably more scalable for multiple operators of the
  * same precedence, which as it rightly points out, cannot always be grouped
  * arbitrarily. *)
+
+use "working-programmer/examples/sample4-prop.sml";
+
 fun show (Atom a)    = a
   | show (Neg (Atom p))     = "~"^p
   | show (Neg p)     = "~("^show p^")"
@@ -387,10 +369,6 @@ fun show (Atom a)    = a
   | show (Disj(p,q)) = show p^" | "^ show q;
 
 (* 4.33: *)
-infix mem;
-fun x mem []      = false
-  | x mem (y::ys) = x=y orelse x mem ys;
-
 fun eval (Atom a, truelist)     = a mem truelist
   | eval (Neg p, truelist)      = not (eval (p, truelist))
   | eval (Conj (p,q), truelist) =
@@ -417,10 +395,6 @@ fun distrib (Conj(p,q), Conj(r,s)) =
   | distrib (p, Conj(q,r))         = Conj(distrib (p,q), distrib(p,r))
   | distrib (Conj(q,r), p)         = Conj(distrib (p,q), distrib(p,r))
   | distrib (p,q)                  = Disj(p,q);
-
-fun cnf (Conj(p,q)) = Conj(cnf p, cnf q)
-  | cnf (Disj(p,q)) = distrib (cnf p, cnf q)
-  | cnf p           = p;
 
 (* 4.36: Intial attempt - DeMorgan's Laws. Once the proposition is in CNF,
  * apply DeMorgans', and check the tautology of its CNF. Online solutions say
@@ -455,45 +429,6 @@ and concl = implies (landed, Neg saintly);
 
 val goal  = implies (Conj(asm1, asm2), concl);
 show goal;
-
-(* CNF *)
-fun nnf (Atom a)          = Atom a
-  | nnf (Neg (Atom a))    = Neg (Atom a)
-  | nnf (Neg (Neg p))     = nnf p
-  | nnf (Neg (Conj(p,q))) = nnf (Disj(Neg p, Neg q))
-  | nnf (Neg (Disj(p,q))) = nnf (Conj(Neg p, Neg q))
-  | nnf (Conj(p,q))       = Conj(nnf p, nnf q)
-  | nnf (Disj(p,q))       = Disj(nnf p, nnf q);
-
-fun nnfpos (Atom a)    = Atom a
-  | nnfpos (Neg p)     = nnfneg p
-  | nnfpos (Conj(p,q)) = Conj(nnfpos p, nnfpos q)
-  | nnfpos (Disj(p,q)) = Conj(nnfpos p, nnfpos q)
-and nnfneg (Atom a)    = Neg (Atom a)
-  | nnfneg (Neg p)     = nnfpos p
-  | nnfneg (Conj(p,q)) = Disj(nnfneg p, nnfneg q)
-  | nnfneg (Disj(p,q)) = Conj(nnfneg p, nnfneg q);
-
-(* List stuff for taut function. *)
-fun null []     = true
-  | null (_::_) = false;
-
-fun inter ([], ys)    = []
-  | inter (x::xs, ys) = if x mem ys then x::inter (xs,ys)
-                                    else inter (xs, ys);
-exception NonCNF;
-fun positives (Atom a)       = [a]
-  | positives (Neg (Atom _)) = []
-  | positives (Disj(p,q))    = positives p @ positives q
-  | positives  _             = raise NonCNF;
-
-fun negatives (Atom _)       = []
-  | negatives (Neg (Atom a)) = [a]
-  | negatives (Disj(p,q))    = negatives p @ negatives q
-  | negatives _              = raise NonCNF;
-
-fun taut (Conj(p,q)) = taut p andalso taut q
-  | taut p           = not (null (inter (positives p, negatives p)));
 
 (* I don't think nnf and nnfpos are equivalent. *)
 val cgoal  = cnf (nnf goal)

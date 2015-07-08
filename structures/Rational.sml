@@ -1,5 +1,3 @@
-use "structures/ARITH.sig";
-
 structure Rational : ARITH =
   struct
   type t = int * int
@@ -22,4 +20,3 @@ structure Rational : ARITH =
   fun prod ((a,b), (x,y)) = norm (a*x, b*y)
   fun quo  (ab,      (x,y)) = prod (ab, (y,x))
   end;
-

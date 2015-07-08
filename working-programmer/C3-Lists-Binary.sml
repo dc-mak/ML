@@ -27,6 +27,7 @@ fun binprod ([], _)         = []
 
 (* 3.16: See the structure... All from Online solution's web answers. *)
 (* 3.17: TODO Redo 1995.1.6 *)
+use "structures/ARITH.sig";
 use "structures/Bin.sml";
 
 (* 3.18: Looked at starting point. *)

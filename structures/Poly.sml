@@ -20,8 +20,6 @@ direct, incidental or consequential damages resulting from your use of
 these programs or functions.
 ****)
 
-use "structures/ARITH.sig";
-
 (*An obscure built-in infix in some compilers; we need it nonfix*)
 nonfix rem;
 

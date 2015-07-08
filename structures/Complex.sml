@@ -20,8 +20,6 @@ direct, incidental or consequential damages resulting from your use of
 these programs or functions.
 ****)
 
-use "structures/ARITH.sig";
-
 structure Complex : ARITH =
   struct
   type t = real*real;

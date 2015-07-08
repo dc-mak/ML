@@ -1,4 +1,4 @@
-(**** ML Programs from Chapter 4 of
+(**** DICTIONARY signature from Chapter 4 of
 
   ML for the Working Programmer, 2nd edition
   by Lawrence C. Paulson, Computer Laboratory, University of Cambridge.
@@ -20,15 +20,13 @@ direct, incidental or consequential damages resulting from your use of
 these programs or functions.
 ****)
 
-signature FLEXARRAY = 
+signature DICTIONARY = 
   sig
-  type 'a array
-  val empty:  'a array
-  val length: 'a array -> int
-  val sub:    'a array * int -> 'a
-  val update: 'a array * int * 'a -> 'a array
-  val loext:  'a array * 'a -> 'a array
-  val lorem:  'a array -> 'a array
-  val hiext:  'a array * 'a -> 'a array
-  val hirem:  'a array -> 'a array
+  type key				(*type of keys*)
+  type 'a t				(*type of tables*)
+  exception E of key			(*errors in lookup, insert*)
+  val empty: 'a t			(*the empty dictionary*)
+  val lookup: 'a t * key -> 'a
+  val insert: 'a t * key * 'a -> 'a t
+  val update: 'a t * key * 'a -> 'a t
   end;

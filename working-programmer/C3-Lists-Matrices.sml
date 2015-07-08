@@ -47,7 +47,7 @@ fun matadd ([], [])       = []
 (* 3.25: pivotrows finds the first row with the largest head value and
  * delrow finds and deletes the first. *)
 
-use "working-programmer/examples/sample3.sml";
+use "working-programmer/examples/sample3-matrices.sml";
 
 (* This could have all been replaced with a bunch of maps *)
 fun cons (x, [])    = []
