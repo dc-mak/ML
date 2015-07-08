@@ -22,6 +22,8 @@ these programs or functions.
 Additional comments added by Dhruv Makwana.
 ****)
 
+(* TODO: Redo with functionals. *)
+
 signature BINARY =
   sig
   include ARITH
