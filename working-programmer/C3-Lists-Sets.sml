@@ -31,7 +31,9 @@ fun choose (0, xs)    = [[]]
  * Additional: if m = len xs and n = len ys then cartprod takes m+n
  * *nested* calls but cprod takes m*n *nested* calls. *)
 
-(* 3.36:
+(* 3.36: Corrected with online solution. *)
+use "working-programmer/examples/sample3.sml";
+
 fun pathsort graph =
   let
     fun sort ([], path, visited)    = [visited]
@@ -47,7 +49,6 @@ fun pathsort graph =
   in
     sort (starts, [], [])
   end;
-*)
 
 (* 3.37: Yes and it'll contain all nodes? (Yes.) *) 
 
@@ -72,7 +73,7 @@ fun find (a::bs, i) =
                   else part (left, x::right, xs)
     in part ([], [], bs) end;
  
-(* 3.40: This starts from 1, online solutions' * starts from 0. Online one
+(* 3.40: This starts from 1, online solutions' starts from 0. Online one
  * is more concise but sacrifices a little clarity. *)
 fun findrange ([], i, j)    = []
   | findrange (a::bs, i, j) =
@@ -95,23 +96,7 @@ fun findrange ([], i, j)    = []
     in if j < i then [] else part ([], [], bs) end;
 
 (* 3.41: *)
-local val (a, m) = (1687.0, 2147483647.0) in 
-    fun nextrand seed =
-    let val t = a * seed
-    in t - m * real (floor (t/m)) end
-end;
-
-fun randlist (n, seed, tail) =
-      if n = 0 then (seed, tail)
-      else randlist (n-1, nextrand seed, seed::tail);
-
 fun generate_list () = randlist (10000000, 1.0, []);
-
-fun merge ([], ys)          = ys : real list
-  | merge (xs, [])          = xs
-  | merge (x::xs, y::ys)    =
-    if x <= y then x::merge (xs, y::ys)
-              else y::merge (x::xs, ys);
 
 fun alts ([], xs, ys)       = (xs, ys)
   | alts ([x], xs, ys)      = (x::xs, ys)
@@ -167,31 +152,21 @@ and decrun (dec, inc, [])       = (merge (dec, inc), [])
                   else decrun (x::dec, inc, xs);
 
 (* After looking structure of online solution briefly. Would be much more
- * by passing the comparison operator as a higher order function. *)
-fun mergepairs ([l], k)         = [l]
-  | mergepairs (l1::l2::ls, k) =
-    if k mod 2 = 1 then l1::l2::ls
-                   else mergepairs (merge (l1,l2)::ls, k div 2);
-
-fun nextinc (run, [])    = (rev run, [] : real list)
-  | nextinc (run, x::xs) =
-    if x < hd run then (rev run, x::xs)
-                  else nextinc (x::run, xs);
-
+ * concise by passing the comparison operator as a higher order function. *)
 fun nextdec (run, [])    = (run, [] : real list)
   | nextdec (run, x::xs) =
     if x > hd run then (run, x::xs)
                   else nextdec (x::run, xs);
 
 (* Close, minor adjustments made in correction. *)
-fun samsorting ([],    ls, k)  = hd (mergepairs (ls, 0))
-  | samsorting ([x],   ls, k)  = hd (mergepairs ([x]::ls, 0))
-  | samsorting (x::y::xs, ls, k)  =
+fun samsorting' ([],    ls, k)  = hd (mergepairs (ls, 0))
+  | samsorting' ([x],   ls, k)  = hd (mergepairs ([x]::ls, 0))
+  | samsorting' (x::y::xs, ls, k)  =
   let val (run, tail) = if x < y then nextdec ([y,x], xs)
-                                 else nextinc ([y,x], xs)
-  in samsorting (tail, mergepairs (run::ls, k+1), k+1) end;
+                                 else nextrun ([y,x], xs)
+  in samsorting' (tail, mergepairs (run::ls, k+1), k+1) end;
 
-fun samsort xs = samsorting (xs, [[]], 0);
+fun samsort' xs = samsorting' (xs, [[]], 0);
 
 (* 3.45: The same as sum, but with + replaced by - and the first clause's
  * result negated with termprod ((0, ~1.), us). *)
@@ -202,14 +177,14 @@ fun show ts =
     fun term (m,a) =
     let val pow = Int.toString m
         val coeff = Real.toString a
-    in if pow = 0 then coeff else
-       if pow = 1 then coeff^"x"
+    in if m = 0 then coeff else
+       if m = 1 then coeff^"x"
                   else coeff^"x"^pow
     end
     
     fun s ([]         , str) = str
-      | s ([t]  , str) = show t
-      | s ((m,a)::ts, str) = s (ts, str^show t^" ")
+      | s ([t]  , str) = term t
+      | s (t::ts, str) = s (ts, str^term t^" ")
   in s (ts, "") end;
 
 (* 3.47: prod uses sum so because sum ensures coefficients are returned in

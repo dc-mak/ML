@@ -34,7 +34,7 @@ fun check_date ((d, m) : date) =
                      m = "October" orelse
                      m = "December" )));
 
-(* 2.6: Doesn't check for validity of time. *)
+(* 2.6: Doesn't check for validity of time, simply compares. *)
 type time = int * int * string;
 fun is_before ((h1, m1, ampm1) : time, (h2, m2, ampm2) : time) =
   ampm1 = "AM" andalso
@@ -113,7 +113,7 @@ fun sub_oem (amt1, amt2) = to_oem (to_pence amt1 - to_pence amt2);
 
 (* 2.17: F(k+n). *)
 
-(* 2.18: needs stack apparently. *)
+(* 2.18: Needs stack apparently. *)
 
 (* 2.19: Weird *)
 fun even m = m mod 2 = 0;
@@ -209,53 +209,26 @@ fun p_n n    = if n <= 1 then 1 else 1 + sum_pn (n-1)
 and sum_pn n = if n <= 1 then 1 else p_n n + sum_pn (n-1);
 
 (* Efficient, because Maths ftw! *)
-fun P_n n =
+fun p_n' n =
   let fun pn (count, acc) =
           if count <= 1 then acc else pn (count-1, 2*acc)
   in  pn (n, 1) end;
 
 (* 2.24: *)
-structure Real =
-struct
+use "structures/ARITH.sig";
+structure Real : ARITH =
+  struct
   type t = real
   val zero = 0.0 : t
   fun sum  (a, b) = a + b : t
   fun diff (a, b) = a - b : t
   fun prod (a, b) = a * b : t
   fun quo  (a:t, b:t) = a / b : t   (* Said real*real -> t w/o it. *)
-end;
+  end;
 
 (* 2.25: I could use higher-order functions and local..in..end to tidy
  * this up but for now, this suffices. *)
-signature ARITH =
-sig
-  type t
-  val zero : t
-  val sum  : t * t -> t
-  val diff : t * t -> t
-  val prod : t * t -> t
-  val quo  : t * t -> t
-end;
-
-structure Rational : ARITH =
-struct
-  type t = int * int
-  val zero = (0, 1) : t
-  fun norm ((a,b) : t) =
-  let
-    val (x,y) = (Int.abs a, Int.abs b)
-    val hcf   = gcd (x,y)
-    fun sgn x =  if x < 0 then ~1 else 1
-    val sign  = sgn a * sgn b
-    val (p,q) = if sign = 1 then (x, y) else (~x, y)
-   in
-     (p div hcf, q div hcf)
-   end
-  fun sum  ((a,b):t, (x,y):t) = norm (a*y + b*x, b*y)
-  fun diff ((a,b):t, (x,y):t) = norm (a*y - b*x, b*y)
-  fun prod ((a,b):t, (x,y):t) = norm (a*x, b*y)
-  fun quo  (ab,      (x,y):t) = prod (ab, (y,x))
-end;
+use "structures/Rational.sml";
 
 (* 2.26: We see n=1 is used so n must be of type int. curr and prev must be of
  * the same type, either int or real. Because the funtion is annotated to return

@@ -87,8 +87,9 @@ fun zip (_, [])        = []
  *)
 
 (* 3.11: TODO Make lazy version of this to check it.
- *       Didn't know that only one way, not all ways required.
- *       See C3-RomNum.sml for a more detailed attempt. *)
+ *       Didn't know that only one way, not all ways required. *)
+
+(* Initial attempt *)
 local
   val numerals = [(1000, #"M"), (500, #"D"), (100, #"C"),
                   (50, #"L"), (10, #"X"), (5, #"V"), (1, #"I")]
@@ -109,7 +110,8 @@ in
   fun roman n = revList (toRom ([], numerals, n))
 end;
 
-(* Extension of 3.11: quite untidy. *)
+(* Extension of 3.11: quite untidy.
+ * For later: roman 829 (and some other values) cause duplicates. *)
 local
   fun toRom (sofar, vals, 0,   skip) = [sofar]
     | toRom (sofar, vals, amt, skip) =
@@ -150,6 +152,7 @@ local
 
   val numerals = [(1000, #"M"), (500, #"D"), (100, #"C"),
                   (50, #"L"), (10, #"X"), (5, #"V"), (1, #"I")]
+
   fun revList [] = []
     | revList (x::xs) = implode (rev x)::revList xs;
 
@@ -157,7 +160,6 @@ in
   fun roman n = revList (toRom ([], numerals, n, false))
 end;
 
-(* For later: roman 829 (and some other values) cause duplicates. *)
 (* Online solution *)
 val rompairs1 = [("M",1000), ("D",500), ("C",100),
                  ("L",50), ("X",10), ("V",5), ("I",1)]

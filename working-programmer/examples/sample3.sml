@@ -394,5 +394,3 @@ structure Poly =
     | gcd (ts, us) = gcd (rem (us,ts), ts);
 
   end;
-
-

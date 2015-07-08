@@ -4,17 +4,17 @@
 
 (* 3.20: Raise match or that that free variable thing.
  * Correction: it *loops* because both headcols and tailcols accept empty
- * lists as arguments which are then return and recursed till stack overflow. *)
+ * lists as arguments which are then returned and recursed till stack overflow. *)
 
 (* 3.21: *)
 fun transp2 []      = []
   | transp2 (y::ys) =
   let
-    fun lst [] = []
-      | lst (x::xs) = [x]::lst xs;
+    fun singleton []      = []
+      | singleton (x::xs) = [x]::singleton xs;
 
     fun join ([],    ys)    = []
-      | join (xs,    [])    = lst xs
+      | join (xs,    [])    = singleton xs
       | join (x::xs, y::ys) = (x::y)::join(xs,ys);
   in
     join(y, transp2 ys)
@@ -24,8 +24,8 @@ fun transp2 []      = []
 fun neglist []      = [] : real list
   | neglist (y::ys) = ~y::neglist ys;
 
-fun negmat []      = []
-  | negmat (x::xs) = neglist x::negmat xs;
+fun matneg []      = []
+  | matneg (x::xs) = neglist x::matneg xs;
 
 (* 3.23: inexhaustive pattern matching so that we know when matrices are
  * not of the same dimensions. *)
@@ -47,8 +47,7 @@ fun matadd ([], [])       = []
 (* 3.25: pivotrows finds the first row with the largest head value and
  * delrow finds and deletes the first. *)
 
-fun dotprod ([], [])       = 0.0
-  | dotprod (x::xs, y::ys) = x*y + dotprod (xs, ys)
+use "working-programmer/examples/sample3.sml";
 
 (* This could have all been replaced with a bunch of maps *)
 fun cons (x, [])    = []
@@ -73,26 +72,8 @@ fun matdet [[x]]          = x
 
 (* Online solution: modified gausselim *)
 (* This should never be passed [] hence inexhaustive patterns. *)
-fun pivotrow [row]              = row : real list
-  | pivotrow (row1::row2::rows) = if Real.abs (hd row1) >= abs (hd row2)
-                                    then pivotrow (row1::rows)
-                                    else pivotrow (row2::rows);
-
-fun delrow (p, [])        = []
-  | delrow (p, row::rows) = if Real.==(p,hd row) then rows
-                            else row::delrow (p, rows);
-
-fun scalarprod (k, [])    = [] : real list
-  | scalarprod (k, x::xs) = k*x :: scalarprod (k,xs);
-
-(* Only want to add rows of the same size, hence inexhaustie patterns. *)
-fun vectorsum ([], [])       = [] : real list
-  | vectorsum (x::xs, y::ys) = x+y::vectorsum (xs,ys);
-
-(* Online solution *)
-(* Again, this should never be passed [] hence inexhaustive patterns. *)
-fun gausselim [row]  = ([row], 1.0)
-  | gausselim (rows) =
+fun signed_gausselim [row]  = ([row], 1.0)
+  | signed_gausselim (rows) =
   let
     (* pivotrow will never return [], hence inexhaustive patterns. *)
     val p::prow = pivotrow rows
@@ -101,28 +82,19 @@ fun gausselim [row]  = ([row], 1.0)
     fun elimcol []              = []
       | elimcol ((x::xs)::rows) =
       vectorsum (xs, scalarprod(~x/p, prow))::elimcol rows
-    val (g_rows, odd) = gausselim (elimcol (delrow (p, rows)))
+    val (g_rows, odd) = signed_gausselim (elimcol (delrow (p, rows)))
   in    
     ((p::prow)::g_rows, if samerow then odd else ~odd)
   end;
 
-fun solutions [] = [~1.0]
-  (* We know all rows will be non-empty, hence inexhaustive patterns. *)
-  | solutions ((x::xs)::rows) =
-  let
-    val solns = solutions rows
-  in
-    ~(dotprod (solns,xs)/x)::solns
-  end;
+fun diagprod ([], e: real)       = e
+  | diagprod((x::xs)::rows, e) = diagprod (rows, x*e);
 
-fun det_tri rows =
-  let fun tri ([], res)            = res
-        (* Again, rows will be non-empty, hence inexhaustive patterns. *)
-        | tri ((x::xs)::rows, res) = tri (rows, x*res);
-  in tri rows end;
+fun det rows = diagprod(signed_gausselim rows);
 
-(* 3.27: See online solutions for more concise alternative...
- * Create identity matrix to append onto the right. *)
+(* 3.27: See online solutions for a much more concise alternative. *)
+(* TODO: Redo better *)
+(* Create identity matrix to append onto the right. *)
 fun matid size =
   let fun id (res, 0)          = res
         | id ([], n)           = id ([[1.0]], n-1)
@@ -135,7 +107,6 @@ fun matid size =
 fun mult (n, [])    = [] : real list
   | mult (n, x::xs) = n*x::mult(n,xs);
 
-(* TODO: Redo better *)
 (* Assert that ys only has one element by the end of it *)
 fun addrows (x::xs, [y], 1)   = mult(~x,y)
   | addrows (x::xs, y::ys, n) =
@@ -159,8 +130,7 @@ fun extract_sol rows =
   let
     val size = length rows
     fun droprows []      = []
-      | droprows (x::xs) =
-      List.drop (x, size) :: droprows xs
+      | droprows (x::xs) = List.drop (x, size) :: droprows xs
   in
     droprows rows
   end;
@@ -172,7 +142,7 @@ fun matinverse rows =
   let fun app ([], [])       = []
         | app (x::xs, y::ys) = (x@y)::app(xs,ys)
   in
-    extract_sol (back_sub (#1(gausselim (app (rows, matid (length rows))))))
+    extract_sol (back_sub (gausselim (app (rows, matid (length rows)))))
   end;
 
 (* Online solution, to study. *)
@@ -198,7 +168,7 @@ fun inverse rows =
         | newrows (row::rows, k) =
               (row @ idrow(1.0,k)) :: newrows(rows, k+1)
       (* Solve as normal. *)
-      val ge = #1(gausselim (newrows(rows,1)))
+      val ge = gausselim (newrows(rows,1))
       (* Major difference: solution built up in columns. *)
       fun newcols k =
             if k>n then []
