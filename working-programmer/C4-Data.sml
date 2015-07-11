@@ -356,17 +356,14 @@ fun chop n = if n>3 then 2*chop(n div 2) + n mod 2 else 1;
 
 use "working-programmer/examples/sample4-prop.sml";
 
-fun show (Atom a)    = a
-  | show (Neg (Atom p))     = "~"^p
-  | show (Neg p)     = "~("^show p^")"
-  | show (Conj(Disj (p,q), Disj (r, s))) =
-    "("^show p^" | "^show q^") & ("^show r^" | "^show s^")"
-  | show (Conj(Disj (p,q), r)) =
-    "("^show p^" | "^show q^") & "^ show r
-  | show (Conj(p, Disj (q,r))) =
-        show p^" & ("^ show q^" | "^show r^")"
-  | show (Conj(p,q)) = show p^" & "^ show q
-  | show (Disj(p,q)) = show p^" | "^ show q;
+fun show (Atom a)                         = a
+  | show (Neg (Atom p))                   = "~"^p
+  | show (Neg p)                          = "~("^show p^")"
+  | show (Conj(p as Disj _, r as Disj _)) = "("^ show p^") & ("^show r^")"
+  | show (Conj(p as Disj _, r))           = "("^show p^") & "^ show r
+  | show (Conj(p, q as Disj _))           = show p^" & ("^show q^")"
+  | show (Conj(p,q))                      = show p^" & "^ show q
+  | show (Disj(p,q))                      = show p^" | "^ show q;
 
 (* 4.33: *)
 fun eval (Atom a, truelist)     = a mem truelist
@@ -397,8 +394,10 @@ fun distrib (Conj(p,q), Conj(r,s)) =
   | distrib (p,q)                  = Disj(p,q);
 
 (* 4.36: Intial attempt - DeMorgan's Laws. Once the proposition is in CNF,
- * apply DeMorgans', and check the tautology of its CNF. Online solutions say
- * to simply swap Disj and Conj in distrib and following functions. *)
+ * apply DeMorgans', and check the tautology of its CNF.
+ *
+ * Online solutions say to simply swap Disj and Conj in distrib and following
+ * functions. *)
 
 fun dnf' (Conj(p,q)) = Neg (Disj(dnf' p, dnf' q))
   | dnf' (Disj(p,q)) = Neg (Conj(dnf' p, dnf' q))
@@ -430,33 +429,40 @@ and concl = implies (landed, Neg saintly);
 val goal  = implies (Conj(asm1, asm2), concl);
 show goal;
 
-(* I don't think nnf and nnfpos are equivalent. *)
-val cgoal  = cnf (nnf goal)
-and c'goal = cnf (nnfpos goal);
-
-(* And they even evaluate differently . *)
+val cgoal  = cnf (nnfpos goal)
 val cgoal_is_true = taut cgoal
-and c'goal_is_true = taut c'goal;
 
 (* DNF *)
-exception NonDNF;
-fun dnfpos (Atom a)       = [a]
-  | dnfpos (Neg (Atom _)) = []
-  | dnfpos (Disj(p,q))    = dnfpos p @ dnfpos q
-  | dnfpos  _             = raise NonDNF;
+fun dnfdis (p, Disj(q,r)) = Disj(dnfdis(p,q), dnfdis(p,r))
+  | dnfdis (Disj(q,r), p) = Disj(dnfdis(q,p), dnfdis(r,p))
+  | dnfdis (p, q) = Conj(p,q)   (*no disjunctions*) ;
 
-fun dnfneg (Atom _)       = []
-  | dnfneg (Neg (Atom a)) = [a]
-  | dnfneg (Disj(p,q))    = dnfneg p @ dnfneg q
-  | dnfneg _              = raise NonDNF;
+fun dnf (Disj(p,q)) = Disj (dnf p, dnf q)
+  | dnf (Conj(p,q)) = dnfdis (dnf p, dnf q)
+  | dnf p = p    (*a literal*) ;
+
+exception NonDNF;
+
+fun dnfpos (Atom a)      = [a]
+  | dnfpos (Neg(Atom _)) = []
+  | dnfpos (Conj(p,q))   = dnfpos p @ dnfpos q
+  | dnfpos  _            = raise NonDNF;
+
+fun dnfneg (Atom _)      = []
+  | dnfneg (Neg(Atom a)) = [a]
+  | dnfneg (Conj(p,q))   = dnfneg p @ dnfneg q
+  | dnfneg  _            = raise NonDNF;
 
 fun dnftaut (Disj(p,q)) = dnftaut p andalso dnftaut q
-  | dnftaut p           = not (null (inter (dnfpos p, dnfneg p)));
+  | dnftaut p = not (null (inter (dnfpos p, dnfneg p)));
 
-(* DeMorgan's didn't work... *)
-val dgoal  = dnf (nnf (Neg goal))
-and d'goal = dnf' (nnf (Neg goal));
+(* Inconsistent goal *)
+val incons_goal = Neg goal;
 
-(* And they even evaluate differently . *)
+(* My attempt *)
+val d'goal = cnf (nnfpos (dnf' (incons_goal)));
+val d'goal_is = taut d'goal;
+
+(* Online solution suggestion. *)
+val dgoal  = dnf (nnfpos (incons_goal))
 val dgoal_is_true  = dnftaut dgoal
-and d'goal_is_true = dnftaut d'goal;
