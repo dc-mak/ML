@@ -539,7 +539,7 @@ functor BraunFunctor (Tree: TREE) : BRAUN =
   end;
 
 
-functor TreeFunctor () : TREE =
+functor TreeFunctor ( ) : TREE =
   struct
   datatype 'a tree = Lf  |  Br of 'a * 'a tree * 'a tree;
 
