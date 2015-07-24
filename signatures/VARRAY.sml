@@ -1,4 +1,4 @@
-(**** Dictionary structure from Chapter 4 of
+(**** ML Programs from Chapter 8 of
 
   ML for the Working Programmer, 2nd edition
   by Lawrence C. Paulson, Computer Laboratory, University of Cambridge.
@@ -20,42 +20,17 @@ direct, incidental or consequential damages resulting from your use of
 these programs or functions.
 ****)
 
-structure Tree =
-  struct
-  fun size Lf = 0
-    | size (Br(v,t1,t2)) = 1 + size t1 + size t2;
+(**** V-arrays ****)
 
-  fun depth Lf = 0
-    | depth (Br(v,t1,t2)) = 1 + Int.max (depth t1, depth t2);
-
-  fun reflect Lf = Lf
-    | reflect (Br(v,t1,t2)) = 
-	  Br(v, reflect t2, reflect t1);
-
-  fun preord (Lf, vs) = vs
-    | preord (Br(v,t1,t2), vs) =
-	  v :: preord (t1, preord (t2, vs));
-
-  fun inord (Lf, vs) = vs
-    | inord (Br(v,t1,t2), vs) =
-	  inord (t1, v::inord (t2, vs));
-
-  fun postord (Lf, vs) = vs
-    | postord (Br(v,t1,t2), vs) =
-	  postord (t1, postord (t2, v::vs));
-
-  fun balpre  []    = Lf
-    | balpre(x::xs) =
-	let val k = length xs div 2
-	in  Br(x, balpre(List.take(xs,k)),  balpre(List.drop(xs,k)))
-	end;
-
-  fun balin [] = Lf
-    | balin xs =
-	let val k = length xs div 2
-	    val y::ys = List.drop(xs,k)
-	in  Br(y, balin (List.take(xs,k)), balin ys)
-	end;
-
-  fun balpost xs = reflect (balpre (rev xs));
+signature VARRAY = 
+  sig
+  type 'a t
+  val array      : int * 'a -> 'a t
+  val fromList   : 'a list -> 'a t
+  val copy       : 'a t -> 'a t
+  val reroot     : 'a t -> 'a t
+  val sub        : 'a t * int -> 'a
+  val justUpdate : 'a t * int * 'a -> 'a t
+  val update     : 'a t * int * 'a -> 'a t
   end;
+

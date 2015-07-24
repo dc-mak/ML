@@ -215,7 +215,7 @@ fun p_n' n =
   in  pn (n, 1) end;
 
 (* 2.24: *)
-use "structures/ARITH.sig";
+use "working-programmer/examples/ARITH.sig";
 structure Real : ARITH =
   struct
   type t = real
@@ -228,7 +228,7 @@ structure Real : ARITH =
 
 (* 2.25: I could use higher-order functions and local..in..end to tidy
  * this up but for now, this suffices. *)
-use "structures/Rational.sml";
+use "working-programmer/examples/Rational.sml";
 
 (* 2.26: We see n=1 is used so n must be of type int. curr and prev must be of
  * the same type, either int or real. Because the funtion is annotated to return

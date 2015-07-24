@@ -1,4 +1,4 @@
-(**** ML Programs from Chapter 4 of
+(**** ML Programs from Chapter 8 of
 
   ML for the Working Programmer, 2nd edition
   by Lawrence C. Paulson, Computer Laboratory, University of Cambridge.
@@ -20,16 +20,17 @@ direct, incidental or consequential damages resulting from your use of
 these programs or functions.
 ****)
 
-signature PRIORITY_QUEUE =
+(*** Ring Buffers, or Doubly Linked Lists ***)
+
+signature RINGBUF = 
   sig
-  type item
-  type t
-  val empty    : t
-  val null     : t -> bool
-  val insert   : item * t -> t
-  val min      : t -> item
-  val delmin   : t -> t
-  val fromList : item list -> t
-  val toList   : t -> item list
-  val sort     : item list -> item list
+  eqtype 'a t
+  exception Empty
+  val empty: unit -> 'a t
+  val null: 'a t -> bool
+  val label: 'a t -> 'a
+  val moveLeft: 'a t -> unit
+  val moveRight: 'a t -> unit
+  val insert: 'a t * 'a -> unit
+  val delete: 'a t -> 'a
   end;

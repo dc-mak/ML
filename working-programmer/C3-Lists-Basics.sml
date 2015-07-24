@@ -188,7 +188,7 @@ fun allChange (coins, vals, 0)             = [coins]
 fun allC (coins, vals, amt) =
 let
   fun change (coins, vals, 0, result)      = coins::result
-    | change  (coins, [], amt, result)     = result
+    | change (coins, [], amt, result)      = result
     | change (coins, v::vals, amt, result) =
         if amt < 0 then result
         else change (coins, vals, amt, change (v::coins, v::vals, amt-v, result))

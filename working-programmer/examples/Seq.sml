@@ -35,8 +35,7 @@ structure Seq : SEQUENCE =
   fun null (Cons _) = false
     | null Nil      = true;
 
-  fun fromList [] = Nil
-    | fromList (x::xs) = Cons (x, fn()=> fromList xs)
+  fun fromList l = foldr cons Nil l;
 
   fun toList Nil = []
     | toList (Cons(x,xf)) = x :: toList (xf());

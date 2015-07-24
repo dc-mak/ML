@@ -1,4 +1,4 @@
-(**** Structure Complex from Chapter 2 of
+(**** ML Programs from Chapter 8 of
 
   ML for the Working Programmer, 2nd edition
   by Lawrence C. Paulson, Computer Laboratory, University of Cambridge.
@@ -20,15 +20,12 @@ direct, incidental or consequential damages resulting from your use of
 these programs or functions.
 ****)
 
-structure Complex : ARITH =
-  struct
-  type t = real*real;
-  val zero = (0.0, 0.0);
-  fun sum   ((x,y), (x',y')) = (x+x', y+y') : t;
-  fun diff  ((x,y), (x',y')) = (x-x', y-y') : t;
-  fun prod  ((x,y), (x',y')) = (x*x' - y*y', x*y' + x'*y) : t;
-  fun recip (x,y) = 
-	      let val t:real = x*x + y*y
-	      in  (x/t, ~y/t)  end
-  fun quo   (z,z') = prod(z, recip z');
+signature PRETTY = 
+  sig
+  type t
+  val blo : int * t list -> t
+  val str : string -> t
+  val brk : int -> t
+  val pr  : TextIO.outstream * t * int -> unit
+  val toString : t * int -> string
   end;

@@ -1,0 +1,5 @@
+SeqPair
+Graphs - Searching (BFS/DFS/ID)
+	   - Topological sort
+	   - Minimum Spanning trees
+	   - Shortest Paths (All Pairs)

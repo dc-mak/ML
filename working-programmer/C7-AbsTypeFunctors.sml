@@ -33,9 +33,9 @@ structure Queue2a =
 
 (* 7.4: Logarithmic in everything. *)
 datatype 'a tree = Lf | Br of 'a * 'a tree * 'a tree;
-use "structures/Braun.sml";
-use "structures/FLEXARRAY.sig";
-use "structures/Flex.sml";
+use "working-programmer/examples/Braun.sml";
+use "working-programmer/examples/FLEXARRAY.sig";
+use "working-programmer/examples/Flex.sml";
 
 structure Queue4 =
   struct
@@ -191,7 +191,6 @@ abstype 'a stack2 = Empty
   end;
 
 (* 7.9: This is functionally useless, no way to have anything other than 0. *)
-use "structures/ARITH.sig";
 structure Rational =
   struct
   abstype t = Frac of int * int
@@ -378,7 +377,7 @@ functor VMatrixZSP (Z: ZSP) : ZSP =
   end;
 
 (* 7.17: *)
-use "structures/DICTIONARY.sig";
+use "working-programmer/examples/DICTIONARY.sig";
 use "working-programmer/examples/sample7-DictionaryPQs.sml";
 functor DictList (Key: ORDER) : DICTIONARY = 
   struct

@@ -216,7 +216,7 @@ fun allpre []      = [Lf]
  *            [5,1,4,2,3], [1,5,2,4,3]. *)
 
 (* 4.25: *)
-use "structures/DICTIONARY.sig";
+use "working-programmer/examples/DICTIONARY.sig";
 
 structure DictList : DICTIONARY =
   struct
@@ -327,8 +327,8 @@ fun update (Lf, k, w)            =
  * Converting this to binary is left is append 0 and right is append 1. *)
 
 (* 4.31: Similar to Braun.sub and update with differences discussed above. *)
-use "structures/ARITH.sig";
-use "structures/Bin.sml";
+use "working-programmer/examples/ARITH.sig";
+use "working-programmer/examples/Bin.sml";
 
 fun func_array_sub (tree, n) =
   let fun sub (Lf, _)                = raise Subscript

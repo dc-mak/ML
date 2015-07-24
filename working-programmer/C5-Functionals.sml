@@ -103,15 +103,52 @@ fun newmem (x,xs) = if x mem xs then xs else x::xs;
 fun union (xs, ys) = foldl newmem ys xs;
 
 (* 5.15: It tried to avoid fn Pat => E but and sacrified storage/reducing
- * copying for readability. *)
-fun transp ([]::_) = []
-  | transp rows    = map hd rows::transp (map tl rows);
+ *       copying for readability. *)
+
+(* Was curious about effieciency of Matrix transpose functions. *)
+fun transp []         = []
+  | transp ([]::rows) = []
+  | transp rows       = (map hd rows)::transp (map tl rows);
+
+fun trans' [] = []
+  | trans' (r::rows) = 
+    let fun join ([], ys) = []
+          | join (xs, []) = map (fn x => [x]) xs
+          | join (x::xs, y::ys) = (x::y)::join (xs,ys)
+    in  join (r, trans' rows) end;
+
+fun makeID (0, n, res) = res
+  | makeID (m, n, res) =
+    let val row = List.tabulate (n, fn i => if i = m-1 then 1 else 0)
+    in  makeID (m-1, n, row::res) end;
+
+val gen = fn () => makeID (6300, 6300, []);
+
+fun time () =
+  let
+    val test      = gen ()
+    val cPU_time  = Timer.startCPUTimer ()
+    val real_time = Timer.startRealTimer ()
+    val transposd = transp test
+  in
+    (Timer.checkCPUTimes cPU_time, Timer.checkRealTimer real_time)
+  end;
+
+fun time' () =
+  let
+    val test      = gen ()
+    val cPU_time  = Timer.startCPUTimer ()
+    val real_time = Timer.startRealTimer ()
+    val transposd = trans' test
+  in
+    (Timer.checkCPUTimes cPU_time, Timer.checkRealTimer real_time)
+  end;
 
 (* Could have done composition -
  * val dotprod = foldl op+ 0 o ListPair.mapEq op* *)
 val dotprod = ListPair.foldlEq (fn (x,y,e) => x*y+e) 0;
 (* Online solution
- * fun dotprod pairs = fold op+ 0.0 (ListPair.mapEq op* pairs) *)
+ * fun dotprod pairs = foldl op+ 0.0 (ListPair.mapEq op* pairs) *)
 
 fun matprod (rowsA, rowsB) =
   let fun rowprod cols row = map (secp dotprod row) cols
@@ -226,8 +263,8 @@ fun take (xq, 0)     = []
 
 (* 5.27: *)
 datatype 'a seq = Nil | Cons of 'a * (unit -> 'a seq);
-use "structures/SEQUENCE.sig";
-use "structures/Seq.sml";
+use "working-programmer/examples/SEQUENCE.sig";
+use "working-programmer/examples/Seq.sml";
 
 (* 5.28:
  * add(from 5, squares (from 9))
