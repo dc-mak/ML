@@ -5,15 +5,9 @@ structure Rat :> NUMBER where type t' = int * int =
     | gcd (m,n) = gcd (n mod m, m)
 
   fun norm (a,b) =
-    let
-      val (x,y) = (Int.abs a, Int.abs b)
-      val hcf   = gcd (x,y)
-      fun sgn x =  if x < 0 then ~1 else 1
-      val sign  = sgn a * sgn b
-      val (p,q) = if sign = 1 then (x, y) else (~x, y)
-    in
-      (p div hcf, q div hcf)
-    end
+    let val hcf  = gcd (Int.abs a, Int.abs b)
+        and sgn  = Int.sign b
+    in  (sgn * a div hcf, sgn * b div hcf) end
 
   (* Signature related *)
   type t' = int * int
@@ -39,7 +33,8 @@ structure Rat :> NUMBER where type t' = int * int =
   fun divd (ab, xy) = prod (ab, inv xy)
 
   fun compare (Frac ab, Frac xy) =
-      case (norm ab, norm xy) of ((a,b),(x,y)) => Int.compare (a*x, b*y)
+    let val ((a,b),(x,y)) = (norm ab, norm xy)
+    in  Int.compare (a*x, b*y) end
 
   fun eq (a,b) = compare (a,b) = EQUAL
   end;
