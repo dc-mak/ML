@@ -1,7 +1,16 @@
-functor Complex (Num : NUMBER) :> ARITH where type t' = Num.t * Num.t = 
+signature COMP = 
+  sig
+  include ARITH
+  structure Num : NUMBER
+  val re : t -> Num.t
+  val im : t -> Num.t
+  end;
+
+functor Complex (Num : NUMBER) :> COMP where type t' = Num.t * Num.t = 
   struct
 
   (* Auxilliary *)
+  structure Num = Num
   val ~   = Num.neg
   val op+ = Num.sum
   val op- = Num.diff
@@ -15,6 +24,9 @@ functor Complex (Num : NUMBER) :> ARITH where type t' = Num.t * Num.t =
 
   fun make (a, b)       = Comp (a, b)
   fun dest (Comp (a,b)) = (a,b)
+
+  fun re (Comp(a,b)) = a
+  fun im (Comp(a,b)) = b
 
   fun toString (Comp(a,b)) =
     let val b_str = case Num.compare (b, Num.zero) of

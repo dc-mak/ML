@@ -193,11 +193,14 @@ fun allC_Eff (vals, amt) =
         | change ([], amt)      = 0
         | change (v::vals, amt) =
             if amt < 0 then 0 else
-              let val rest = case (sub (result, amt-1)) of
-                                  NONE   => change (vals, amt)
-                                | SOME a => a
+              let val rest = case (sub (result, amt-1)) of 
+                         NONE   => change (vals, amt)
+                       | SOME a => a
+
                   val sum  = change (v::vals, amt-v) + rest
+
               in  update (result, amt-1, SOME sum); sum end
+
   in change (vals, amt); sub(result, amt-1) end;
 
 (*    (c) association list needed to keep track of coins AND value. *)
@@ -477,27 +480,26 @@ structure Pretty =
 
   (* Functional *)
   fun toString (e, margin) =
-   let fun attach s (a,b) = (s^a, b)
-       fun blanks 0 = ""
-         | blanks n = " " ^ blanks (n-1)
+      let fun blanks 0 = "" | blanks n = " " ^ blanks (n-1)
 
-       fun printing ([], _, _, sp) = ("", sp)
-         | printing (e::es, blocksp, after, sp) =
-            (case e of
-                 Block(bes, ind, len) =>
-                    let val (rest, sp') = 
-                      printing(bes, sp-ind, breakdist(es,after), sp)
-                    in 
-                      attach rest (printing(es, sp-ind, after, sp'))
-                  end
-               | String s => attach s (printing(es, blocksp, after, sp-size s))
-               | Break len =>
-                   let val (str, sp') =
-                         if len + breakdist(es,after) <= sp 
-                         then (blanks len, sp-len)
-                         else ("\n"^blanks (margin-blocksp), blocksp)
-                   in attach str (printing(es, blocksp, after, sp')) end) 
-         in  #1(printing([e], margin, 0, margin))^"\n"  end;
+        fun printing ([], _, _, sp, r) = (r, sp)
+          | printing (e::es, blocksp, after, sp, r) =
+            let val (res, sp') = case e of 
+
+                     Block (bes, ind, len) =>
+                       printing (bes, sp-ind, breakdist (es, after), sp, "")
+
+                   | String s   => (s, sp - size s)
+
+                   | Break  len =>
+                       if len + breakdist (es, after) <= sp then
+                         (blanks len, sp-len)
+                       else
+                         ("\n" ^ blanks (margin-blocksp), blocksp)
+
+            in printing (es, blocksp, after, sp', r^res) end
+
+    in  #1(printing ([e], margin, 0, margin, "")) end
 
   fun length (Block(_,_,len)) = len
     | length (String s) = size s
@@ -540,7 +542,11 @@ and concl = implies (landed, Neg saintly);
 
 val goal  = implies (Conj(asm1, asm2), concl);
 
-Pretty.toString (prettyshow goal, 60);
+(*
+val p = print (
+*)
+val p_str = Pretty.toString (prettyshow goal, 60);
+print p_str;
 Pretty.pr(TextIO.stdOut, prettyshow goal, 60);
 
 (* 8.36: You'd need a block as above, but also contructors for the placeholders 

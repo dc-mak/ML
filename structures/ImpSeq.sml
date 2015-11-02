@@ -37,10 +37,9 @@ structure ImpSeq :> IMP_SEQUENCE =
   fun cons(x,xf) = Cons(x, delay xf);
 
   (*gets tail value, perhaps with the side effect of storing it*)
-  fun force xp = case !xp of
-                     Delayed f => let val s = f()
-		      	          in  xp := s;  s  end
-     	           | s => s;
+  fun force xp =
+    case !xp of Delayed f => let val s = f() in  xp := s; s end
+              | s         => s;
 
   (** these functions do not expect delayed -- it is only permissible
       in the tail of a cons, where it is enclosed in a reference **)
@@ -54,30 +53,27 @@ structure ImpSeq :> IMP_SEQUENCE =
   fun tl Nil = raise Empty
     | tl (Cons(_,xp)) = force xp;
 
-  fun take (xq, 0) = []
-    | take (Nil, n) = []
-    | take (Cons(x,xp), n) = x :: take (force xp, n-1);
+  fun fromList [] = Nil
+    | fromList (x::xs) = cons(x, fn()=> fromList xs);
 
   fun toList Nil = []
     | toList (Cons(x,xp)) = x :: toList (force xp);
 
-  fun fromList [] = Nil
-    | fromList (x::xs) = cons(x, fn()=> fromList xs);
+  fun take (xq, 0) = []
+    | take (Nil, n) = []
+    | take (Cons(x,xp), n) = x :: take (force xp, n-1);
+
+  fun drop (xq, 0) = xq
+    | drop (Nil, n) = Nil
+    | drop (Cons(x,xp), n) = drop (force xp, n-1);
 
   fun Nil @ yq = yq
     | (Cons(x,xp)) @ yq =
-	  Cons(x, delay(fn()=> (force xp) @ yq));
+        Cons(x, delay(fn()=> (force xp) @ yq));
 
   fun interleave (Nil,    yq) = yq
     | interleave (Cons(x,xp), yq) = 
 	  Cons(x, delay (fn()=> interleave(yq, force xp)));
-
-  (*concatenate a sequence of sequences, taking care not to loop! *)
-   fun concat xqq =
-     if null xqq then empty
-     else if null(hd xqq) then concat(tl xqq)
-	  else cons(hd(hd xqq),  
-		    fn()=> tl(hd xqq) @ concat(tl xqq));
 
   (** functionals for sequences **)
   fun map f Nil  = Nil
@@ -90,7 +86,17 @@ structure ImpSeq :> IMP_SEQUENCE =
           then Cons(x, delay(fn()=> filter pred (force xp)))
 	  else filter pred (force xp);
 
-  (*idea thanks to c. reade, see appendix 3 of his book;
+  (*concatenate a sequence of sequences, taking care not to loop! *)
+   fun concat xqq =
+     if null xqq then empty else
+     if null(hd xqq) then concat(tl xqq) else
+       cons(hd(hd xqq),  
+		    fn()=> tl(hd xqq) @ concat(tl xqq));
+
+   fun tabulate f =
+     let fun tab k = Cons(f k, delay(fn () => tab (k+1))) in tab 0 end;
+
+  (*idea thanks to C. Reade, see appendix 3 of his book;
     seqfn must not call its argument outside of a closure;
     lest it get nil rather than the cycle. *)
   fun cycle seqfn =

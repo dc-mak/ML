@@ -35,51 +35,53 @@ structure Pretty : PRETTY =
     | breakdist (Break _ :: es, after) = 0
     | breakdist ([], after) = after;
 
-  (* Functional *)
+  (* Functional *) 
   fun toString (e, margin) =
-   let fun attach s (a,b) = (s^a, b)
-       fun blanks 0 = ""
-         | blanks n = " " ^ blanks (n-1)
+    let fun blanks 0 = "" | blanks n = " " ^ blanks (n-1)
 
-       fun printing ([], _, _, sp) = ("", sp)
-         | printing (e::es, blocksp, after, sp) =
-            (case e of
-                 Block(bes, ind, len) =>
-                    let val (rest, sp') = 
-                      printing(bes, sp-ind, breakdist(es,after), sp)
-                    in 
-                      attach rest (printing(es, sp-ind, after, sp'))
-                  end
-               | String s => attach s (printing(es, blocksp, after, sp-size s))
-               | Break len =>
-                   let val (str, sp') =
-                         if len + breakdist(es,after) <= sp 
-                         then (blanks len, sp-len)
-                         else ("\n"^blanks (margin-blocksp), blocksp)
-                   in attach str (printing(es, blocksp, after, sp')) end) 
-         in  #1(printing([e], margin, 0, margin))^"\n"  end;
+        fun printing ([], _, _, sp, r) = (r, sp)
+          | printing (e::es, blocksp, after, sp, r) =
+          let val (res, sp') =
+
+            case e of 
+              Block (bes, ind, len) =>
+                printing (bes, sp-ind, breakdist (es, after), sp, "")
+            | String s   => (s, sp - size s)
+            | Break  len =>
+                if len + breakdist (es, after) <= sp then
+                  (blanks len, sp-len)
+                else
+                  ("\n" ^ blanks (margin-blocksp), blocksp)
+
+          in printing (es, blocksp, after, sp', r^res) end
+
+    in  #1(printing ([e], margin, 0, margin, "")) end
 
   (* Imperative *)
   fun pr (os, e, margin) =
-   let val space = ref margin
+   let
+     val space = ref margin
 
-       fun blanks n = (TextIO.output(os, StringCvt.padLeft #" " n "");  
-		       space := !space - n)
+     fun blanks n = (TextIO.output(os, StringCvt.padLeft #" " n "");  
+             space := !space - n)
 
-       fun newline () = (TextIO.output(os,"\n");  space := margin)
+     fun newline () = (TextIO.output(os,"\n");  space := margin)
 
-       fun printing ([], _, _) = ()
-	 | printing (e::es, blockspace, after) =
-	  (case e of
-	       Block(bes,indent,len) =>
-		  printing(bes, !space-indent, breakdist(es,after))
-	     | String s => (TextIO.output(os,s);   space := !space - size s)
-	     | Break len => 
-		 if len + breakdist(es,after) <= !space 
-		 then blanks len
-		 else (newline();  blanks(margin-blockspace));
-	    printing (es, blockspace, after))
-   in  printing([e], margin, 0);  newline()  end;
+     fun printing ([], _, _) = ()
+       | printing (e::es, blockspace, after) =
+        (case e of
+             Block(bes,indent,len) =>
+               printing (bes, !space-indent, breakdist (es,after))
+           | String s  => (TextIO.output(os,s);   space := !space - size s)
+           | Break len => 
+               if len + breakdist(es,after) <= !space then
+                 blanks len
+               else
+                 (newline();  blanks(margin-blockspace));
+          printing (es, blockspace, after))
+   in
+     printing([e], margin, 0);  newline()
+   end;
 
   fun length (Block(_,_,len)) = len
     | length (String s) = size s
@@ -88,7 +90,7 @@ structure Pretty : PRETTY =
   val str = String  and  brk = Break;
 
   fun blo (indent,es) =
-    let fun sum([], k) = k
-	  | sum(e::es, k) = sum(es, length e + k)
-    in  Block(es,indent, sum(es,0))  end;
+    let fun sum ([], k) = k
+	  | sum (e::es, k) = sum (es, length e + k)
+    in  Block(es, indent, sum (es,0))  end;
   end;

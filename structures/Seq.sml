@@ -18,6 +18,10 @@ of property.  If you do use the programs or functions in such a manner, it
 is at your own risk.  The author and publisher disclaim all liability for
 direct, incidental or consequential damages resulting from your use of
 these programs or functions.
+
+Changes made by Dhruv Makwana:
+    - Changed "from" to "tabulate", since it's more general.
+    - Added concat (formerly enumerate) to the signature.
 ****)
 
 structure Seq : SEQUENCE =
@@ -71,8 +75,9 @@ structure Seq : SEQUENCE =
   fun tabulate f =
       let fun tab k = Cons(f k, fn () => tab (k+1)) in tab 0 end
 
-  fun enumerate Nil                     = Nil
-    | enumerate (Cons(Nil, xqf))        = enumerate (xqf())
-    | enumerate (Cons(Cons(x,xf), xqf)) =
-          Cons(x, fn()=> interleave(enumerate (xqf()), xf()));
+  (* WARNING: Will not terminate for infinite sequence of Nils *)
+  fun concat Nil                     = Nil
+    | concat (Cons(Nil, xqf))        = concat (xqf())
+    | concat (Cons(Cons(x,xf), xqf)) =
+          Cons(x, fn()=> interleave(concat (xqf()), xf()));
   end;

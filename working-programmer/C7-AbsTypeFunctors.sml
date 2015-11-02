@@ -435,7 +435,8 @@ functor PriorityQueue (Item : ORDER) : PRIORITY_QUEUE =
   struct
   structure Item = Item;     (* required by signature *)
   fun x <= y = (Item.compare (x,y) <> GREATER);
-  (* Would have been smarter to redefine tree constructors here. *)
+  (* Would have been smarter to redefine tree constructors here:
+   * abstype t = Lf | Br of Item.t * t * t                       *)
   abstype t = T of Item.t tree
     with
     val empty = T Lf;

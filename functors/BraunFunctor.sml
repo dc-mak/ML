@@ -1,4 +1,4 @@
-functor BraunFunctor (Tree: TREE) : BRAUN = 
+functor BraunFunctor (Tree : TREE) : BRAUN = 
   let open Tree in
     struct
     structure Tree = Tree;

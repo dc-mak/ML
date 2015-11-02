@@ -21,7 +21,7 @@ these programs or functions.
 
 Changes made by Dhruv Makwana:
     - Changed "from" to "tabulate", since it's more general.
-    - Added enumerate to the signature: it's pretty important.
+    - Added concat (formerly enumerate) to the signature.
 ****)
 
 
@@ -43,5 +43,5 @@ signature SEQUENCE =
   val filter :      ('a -> bool) -> 'a seq -> 'a seq
   val iterates :    ('a -> 'a) -> 'a -> 'a seq
   val tabulate :    (int -> 'a) -> 'a seq
-  val enumerate :   'a seq seq -> 'a seq
+  val concat :      'a seq seq -> 'a seq
   end;

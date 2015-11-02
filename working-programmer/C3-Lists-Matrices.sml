@@ -108,9 +108,9 @@ fun mult (n, [])    = [] : real list
   | mult (n, x::xs) = n*x::mult(n,xs);
 
 (* Assert that ys only has one element by the end of it *)
-fun addrows (x::xs, [y], 1)   = mult(~x,y)
-  | addrows (x::xs, y::ys, n) =
-      vectorsum(mult(~x, y), addrows(xs, ys, n-1));
+fun addrows (x::xs, [y])   = mult(~x,y)
+  | addrows (x::xs, y::ys) =
+      vectorsum(mult(~x, y), addrows(xs, ys));
 
 (* Modified solutions function for matrix inversion. *)
 fun back_sub [x::xs]         = [1.0::mult(1.0/x, xs)]
@@ -118,7 +118,7 @@ fun back_sub [x::xs]         = [1.0::mult(1.0/x, xs)]
   let
     val solved = cons(0.0, back_sub rows)
     (* Multiply each row by corresponding value in current row *)
-    val rest   = addrows (xs, solved, length solved)
+    val rest   = addrows (xs, solved)
     (* Add sum of previous to current row then normalise *)
     val n::new_row = vectorsum(x::xs, rest)
   in
@@ -149,12 +149,17 @@ fun matinverse rows =
 fun zeroes 0 = []                        (* Simple enough function. *)
   | zeroes n = 0.0 :: zeroes(n-1);
 
-(* Solving the matrix a column at a time:
- *          (a  b  c | p )
- *          (0  d  e | q )
- *          (0  0  f | r )
- * by isolating appropriate column through id matrix dot and then
- * storing values for ~r/f and ~(q-e/r)/d and so on. *)
+(* Solving the matrix ONE COLUMN AT A TIME:
+ *          (a  b  c) (x) = (p)
+ *          (0  d  e) (y) = (q)
+ *          (0  0  f) (z) = (r)
+ * The thing to realise here is that due to the initial call, the last element
+ * of endrow *will always* be ~1.0. So for the bottom row
+ *                    z = ~(dotprod([r],[~1.0])/f) = r/f
+ *                    y = ~(dotprod([e,q],[r/f,~1.0])/d)
+ *                      = ~(e*r/f - q)/d
+ *                      = (q - e*r/f)/d
+ * and so on. *)
 fun rsolutions (endrow, [])            = endrow
   | rsolutions (endrow, (x::xs)::rows) =
       let val solns = rsolutions(endrow,rows)
@@ -179,5 +184,7 @@ fun inverse rows =
  * true for the initial call of any function and false for any subsequent
  * recursive ones. That way, we can tell if a [] matrix represents a zero or
  * mismatched matrix dimensions.
+ * Or, avoid that by having an auxilliary function to check for zeros and then
+ * call the actual function if necessary.
  * Alternatively, we can check the dimensions of a matrix thoroughly each time
  * before performing any operations on it. *)
